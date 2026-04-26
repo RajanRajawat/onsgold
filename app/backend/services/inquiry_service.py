@@ -1,0 +1,391 @@
+import csv
+import io
+import secrets
+from typing import Any
+from urllib.parse import quote
+
+from fastapi import HTTPException, status
+
+from core.config import get_settings
+from db.mongo import get_admin_collection, get_custom_request_collection, get_order_collection, get_product_collection, utc_now
+from models.inquiry import (
+    CustomRequestCreate,
+    CustomRequestResponse,
+    InquiryStatus,
+    OrderComment,
+    OrderCreateRequest,
+    OrderCommentCreateRequest,
+    OrderProductSnapshot,
+    OrderResponse,
+)
+from services.email_service import notify_super_admins
+
+
+def generate_inquiry_id(prefix: str) -> str:
+    return f"{prefix}{utc_now().strftime('%Y%m%d%H%M%S')}{secrets.randbelow(900) + 100}"
+
+
+def serialize_order_comment(comment: dict[str, Any], admin_name_lookup: dict[str, str] | None = None) -> OrderComment:
+    legacy_added_by = str(comment.get("added_by") or "").strip()
+    added_by_email = str(comment.get("added_by_email") or "").strip() or None
+    if not added_by_email and "@" in legacy_added_by:
+        added_by_email = legacy_added_by
+
+    added_by_name = str(comment.get("added_by_name") or "").strip() or None
+    if not added_by_name and added_by_email and admin_name_lookup:
+        added_by_name = admin_name_lookup.get(added_by_email)
+
+    display_name = added_by_name or (legacy_added_by if legacy_added_by and "@" not in legacy_added_by else "") or "Admin"
+    return OrderComment(
+        comment=comment["comment"],
+        added_by=display_name,
+        added_by_name=added_by_name,
+        added_by_email=added_by_email,
+        created_at=comment["created_at"],
+    )
+
+
+def serialize_order(
+    document: dict,
+    whatsapp_url: str | None = None,
+    admin_name_lookup: dict[str, str] | None = None,
+) -> OrderResponse:
+    return OrderResponse(
+        id=str(document["_id"]),
+        inquiry_id=document["inquiry_id"],
+        customer_name=document.get("customer_name") or "Not provided",
+        phone=document.get("phone") or "Not provided",
+        notes=document.get("notes"),
+        status=document["status"],
+        inquiry_source=document["inquiry_source"],
+        products=[OrderProductSnapshot(**item) for item in document["products"]],
+        comments=[serialize_order_comment(item, admin_name_lookup) for item in document.get("comments", [])],
+        created_at=document["created_at"],
+        whatsapp_url=whatsapp_url,
+    )
+
+
+def serialize_custom_request(
+    document: dict,
+    whatsapp_url: str | None = None,
+    admin_name_lookup: dict[str, str] | None = None,
+) -> CustomRequestResponse:
+    return CustomRequestResponse(
+        id=str(document["_id"]),
+        request_id=document["request_id"],
+        customer_name=document.get("customer_name") or "Not provided",
+        phone=document["phone"],
+        city=document["city"],
+        jewelry_type=document["jewelry_type"],
+        budget=document["budget"],
+        description=document["description"],
+        purity=document["purity"],
+        image_urls=document.get("image_urls", []),
+        status=document.get("status", InquiryStatus.new.value),
+        comments=[serialize_order_comment(item, admin_name_lookup) for item in document.get("comments", [])],
+        created_at=document["created_at"],
+        inquiry_source=document["inquiry_source"],
+        email=document.get("email"),
+        whatsapp_url=whatsapp_url,
+    )
+
+
+async def get_comment_admin_name_lookup(documents: list[dict[str, Any]]) -> dict[str, str]:
+    emails: set[str] = set()
+    for document in documents:
+        for comment in document.get("comments", []):
+            added_by_email = str(comment.get("added_by_email") or "").strip()
+            legacy_added_by = str(comment.get("added_by") or "").strip()
+            if added_by_email:
+                emails.add(added_by_email)
+            elif "@" in legacy_added_by:
+                emails.add(legacy_added_by)
+    if not emails:
+        return {}
+
+    admins = await get_admin_collection().find(
+        {"email": {"$in": sorted(emails)}},
+        {"email": 1, "name": 1},
+    ).to_list(length=len(emails))
+    return {
+        str(admin.get("email") or "").strip(): str(admin.get("name") or "").strip()
+        for admin in admins
+        if admin.get("email") and admin.get("name")
+    }
+
+
+def build_whatsapp_url(products: list[dict[str, Any]]) -> str:
+    settings = get_settings()
+    lines = ["Hey,", "", "I wanted to buy"]
+    for product in products:
+        title = str(product.get("title") or product.get("product_id") or "").strip()
+        product_id = str(product.get("product_id") or "").strip()
+        quantity = int(product.get("quantity") or 1)
+        label = f"{title} - {product_id}"
+        if quantity > 1:
+            label = f"{title} x{quantity} - {product_id}"
+        lines.append(label)
+    lines.extend(["", "", "Thank you!"])
+    return f"https://wa.me/{settings.whatsapp_number}?text={quote(chr(10).join(lines))}"
+
+
+def build_custom_request_whatsapp_url(document: dict[str, Any]) -> str:
+    settings = get_settings()
+    lines = [
+        "Hey, I wanted to place a custom order:",
+        "",
+        f"Request ID: {document['request_id']}",
+        f"Name: {document['customer_name']}",
+        f"Phone: {document['phone']}",
+        f"City: {document['city']}",
+        f"Jewelry Type: {document['jewelry_type']}",
+        f"Budget: {document['budget']}",
+        f"Preferred Metal / Purity: {document['purity']}",
+        f"Description: {document['description']}",
+    ]
+    image_urls = list(document.get("image_urls", []))
+    if image_urls:
+        lines.extend(["", "Reference Images:"])
+        lines.extend([f"{index + 1}. {url}" for index, url in enumerate(image_urls)])
+    lines.extend(["", "Thank you!"])
+    return f"https://wa.me/{settings.whatsapp_number}?text={quote(chr(10).join(lines))}"
+
+
+async def create_order(payload: OrderCreateRequest) -> OrderResponse:
+    snapshots: list[dict[str, Any]] = []
+    for item in payload.products:
+        product = await get_product_collection().find_one({"product_id": item.product_id})
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Product {item.product_id} not found.",
+            )
+        snapshots.append(
+            {
+                "product_id": product["product_id"],
+                "title": product["title"],
+                "quantity": item.quantity,
+                "price": product.get("price"),
+                "image": product["images"][0] if product.get("images") else None,
+            }
+        )
+
+    inquiry_id = generate_inquiry_id("INQ")
+    now = utc_now()
+    customer_name = payload.customer_name or "Not provided"
+    phone = payload.phone or "Not provided"
+    document = {
+        "inquiry_id": inquiry_id,
+        "customer_name": customer_name,
+        "phone": phone,
+        "notes": payload.notes,
+        "status": InquiryStatus.new.value,
+        "inquiry_source": payload.inquiry_source.value,
+        "products": snapshots,
+        "comments": [],
+        "created_at": now,
+        "updated_at": now,
+    }
+    result = await get_order_collection().insert_one(document)
+    document["_id"] = result.inserted_id
+
+    body = "\n".join(
+        [
+            f"Inquiry ID: {inquiry_id}",
+            f"Customer: {customer_name}",
+            f"Phone: {phone}",
+            f"Source: {payload.inquiry_source.value}",
+            "Products:",
+            *[f"- {item['title']} ({item['product_id']}) x{item['quantity']}" for item in snapshots],
+            f"Notes: {payload.notes or '-'}",
+            f"Created At: {now.isoformat()}",
+        ]
+    )
+    await notify_super_admins(subject=f"ONS Gold Inquiry {inquiry_id}", body=body)
+
+    whatsapp_url = build_whatsapp_url(snapshots)
+    return serialize_order(document, whatsapp_url=whatsapp_url)
+
+
+async def create_custom_request(payload: CustomRequestCreate) -> CustomRequestResponse:
+    request_id = generate_inquiry_id("CUS")
+    now = utc_now()
+    document = payload.model_dump()
+    customer_name = payload.customer_name or "Not provided"
+    document.update(
+        {
+            "request_id": request_id,
+            "customer_name": customer_name,
+            "status": InquiryStatus.new.value,
+            "comments": [],
+            "created_at": now,
+            "updated_at": now,
+            "inquiry_source": payload.inquiry_source.value,
+        }
+    )
+    result = await get_custom_request_collection().insert_one(document)
+    document["_id"] = result.inserted_id
+
+    body = "\n".join(
+        [
+            f"Request ID: {request_id}",
+            f"Customer: {customer_name}",
+            f"Phone: {payload.phone}",
+            f"City: {payload.city}",
+            f"Jewelry Type: {payload.jewelry_type}",
+            f"Budget: {payload.budget}",
+            f"Purity: {payload.purity}",
+            f"Description: {payload.description}",
+            f"Images: {', '.join(payload.image_urls) if payload.image_urls else '-'}",
+            f"Created At: {now.isoformat()}",
+        ]
+    )
+    await notify_super_admins(subject=f"ONS Gold Custom Request {request_id}", body=body)
+    whatsapp_url = build_custom_request_whatsapp_url(document)
+    return serialize_custom_request(document, whatsapp_url=whatsapp_url)
+
+
+async def list_orders(search: str | None = None):
+    query: dict[str, Any] = {}
+    if search:
+        query["$or"] = [
+            {"inquiry_id": {"$regex": search, "$options": "i"}},
+            {"customer_name": {"$regex": search, "$options": "i"}},
+            {"phone": {"$regex": search, "$options": "i"}},
+            {"products.product_id": {"$regex": search, "$options": "i"}},
+        ]
+    documents = await get_order_collection().find(query).sort("created_at", -1).to_list(length=500)
+    admin_name_lookup = await get_comment_admin_name_lookup(documents)
+    return [serialize_order(item, admin_name_lookup=admin_name_lookup) for item in documents]
+
+
+async def list_custom_requests(search: str | None = None):
+    query: dict[str, Any] = {}
+    if search:
+        query["$or"] = [
+            {"request_id": {"$regex": search, "$options": "i"}},
+            {"customer_name": {"$regex": search, "$options": "i"}},
+            {"phone": {"$regex": search, "$options": "i"}},
+            {"city": {"$regex": search, "$options": "i"}},
+        ]
+    documents = await get_custom_request_collection().find(query).sort("created_at", -1).to_list(length=500)
+    admin_name_lookup = await get_comment_admin_name_lookup(documents)
+    return [serialize_custom_request(item, admin_name_lookup=admin_name_lookup) for item in documents]
+
+
+async def update_order_status(inquiry_id: str, status_value: str):
+    result = await get_order_collection().update_one(
+        {"inquiry_id": inquiry_id},
+        {"$set": {"status": status_value, "updated_at": utc_now()}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inquiry not found.")
+
+
+async def update_custom_request_status(request_id: str, status_value: str):
+    result = await get_custom_request_collection().update_one(
+        {"request_id": request_id},
+        {"$set": {"status": status_value, "updated_at": utc_now()}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom order request not found.")
+
+
+async def add_order_comment(inquiry_id: str, payload: OrderCommentCreateRequest, admin: dict):
+    author_name = str(admin.get("name") or "").strip() or "Admin"
+    author_email = str(admin.get("email") or "").strip() or None
+    comment = {
+        "comment": payload.comment,
+        "added_by": author_name,
+        "added_by_name": author_name,
+        "added_by_email": author_email,
+        "created_at": utc_now(),
+    }
+    result = await get_order_collection().update_one(
+        {"inquiry_id": inquiry_id},
+        {"$push": {"comments": comment}, "$set": {"updated_at": utc_now()}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
+
+
+async def add_custom_request_comment(request_id: str, payload: OrderCommentCreateRequest, admin: dict):
+    author_name = str(admin.get("name") or "").strip() or "Admin"
+    author_email = str(admin.get("email") or "").strip() or None
+    comment = {
+        "comment": payload.comment,
+        "added_by": author_name,
+        "added_by_name": author_name,
+        "added_by_email": author_email,
+        "created_at": utc_now(),
+    }
+    result = await get_custom_request_collection().update_one(
+        {"request_id": request_id},
+        {"$push": {"comments": comment}, "$set": {"updated_at": utc_now()}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom order request not found.")
+
+
+async def export_orders_csv() -> str:
+    orders = await get_order_collection().find({}).sort("created_at", -1).to_list(length=1000)
+    custom_requests = await get_custom_request_collection().find({}).sort("created_at", -1).to_list(length=1000)
+    rows: list[dict[str, Any]] = []
+    for item in orders:
+        rows.append(
+            {
+                "order_id": item["inquiry_id"],
+                "order_type": "catalog_order",
+                "customer_name": item["customer_name"],
+                "phone": item["phone"],
+                "status": item["status"],
+                "inquiry_source": item["inquiry_source"],
+                "products": ", ".join(
+                    f'{product.get("title", product["product_id"])} ({product["product_id"]}) x{product["quantity"]}'
+                    for product in item["products"]
+                ),
+                "custom_request": "",
+                "created_at": item["created_at"],
+            }
+        )
+    for item in custom_requests:
+        rows.append(
+            {
+                "order_id": item["request_id"],
+                "order_type": "custom_order",
+                "customer_name": item["customer_name"],
+                "phone": item["phone"],
+                "status": item.get("status", InquiryStatus.new.value),
+                "inquiry_source": item["inquiry_source"],
+                "products": "",
+                "custom_request": " | ".join(
+                    [
+                        f'Type: {item["jewelry_type"]}',
+                        f'City: {item["city"]}',
+                        f'Budget: {item["budget"]}',
+                        f'Purity: {item["purity"]}',
+                        f'Images: {len(item.get("image_urls", []))}',
+                    ]
+                ),
+                "created_at": item["created_at"],
+            }
+        )
+    rows.sort(key=lambda item: item["created_at"], reverse=True)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["order_id", "order_type", "customer_name", "phone", "status", "inquiry_source", "products", "custom_request", "created_at"])
+    for item in rows:
+        writer.writerow(
+            [
+                item["order_id"],
+                item["order_type"],
+                item["customer_name"],
+                item["phone"],
+                item["status"],
+                item["inquiry_source"],
+                item["products"],
+                item["custom_request"],
+                item["created_at"].isoformat(),
+            ]
+        )
+    return output.getvalue()

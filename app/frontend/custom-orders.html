@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Orders | ONS Gold</title>
+  <meta name="description" content="Upload a jewelry reference image and create a custom ONS Gold wholesale order request through WhatsApp." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/index.css" />
+</head>
+<body class="custom-page">
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="ONS Gold home">
+        <span class="nav-logo-main">ONS Gold</span>
+        <span class="nav-logo-sub">Wholesale Jewelry</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a class="active" href="custom-orders.html">Custom Orders</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+        <li><a class="nav-cta" href="#chat" data-open-chat="true">Chat</a></li>
+      </ul>
+      <div class="nav-utility">
+        <button class="hamburger" id="hamburger" type="button" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="custom-orders.html">Custom Orders</a>
+    <a href="index.html#about">About</a>
+    <a href="index.html#contact">Contact</a>
+    <a href="#chat" data-open-chat="true">Chat</a>
+  </div>
+
+  <main>
+    <section class="hero page-hero">
+      <div class="hero-bg custom-bg"></div>
+      <div class="hero-grain"></div>
+      <div class="hero-content">
+        <div class="container reveal visible">
+          <p class="hero-eyebrow">Custom Jewelry</p>
+          <h1 class="hero-title">Upload a reference<br /><em>and request a quote</em></h1>
+          <p class="hero-subtitle">
+            Send a jewelry image, preferred purity, budget, and design notes. The request is stored for the admin team before WhatsApp opens.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="light-band">
+      <div class="container custom-layout">
+        <aside class="custom-aside reveal">
+          <span class="section-label">Custom Order Request</span>
+          <h2 class="section-heading">Share the design details first.</h2>
+          <div class="divider"></div>
+          <p class="section-intro">
+            Add your name, mobile number, jewelry type, city, budget, purity, and a clear description in one form before WhatsApp opens.
+          </p>
+        </aside>
+
+        <form id="custom-order-form" class="stack-form reveal">
+          <div class="field">
+            <label for="custom-images">Jewelry Reference Image</label>
+            <label class="file-drop" for="custom-images">
+              <input id="custom-images" type="file" accept="image/*" multiple required />
+              <span>
+                <strong>Upload jewelry image</strong>
+                <span>JPG, PNG or WEBP. Multiple images are allowed.</span>
+              </span>
+            </label>
+          </div>
+          <div class="preview-list" id="custom-image-preview"></div>
+
+          <div class="two-col">
+            <div class="field">
+              <label for="custom-name">Your Name</label>
+              <input id="custom-name" autocomplete="name" required minlength="2" placeholder="Your full name" />
+            </div>
+            <div class="field">
+              <label for="custom-phone">Mobile Number</label>
+              <input id="custom-phone" inputmode="tel" autocomplete="tel" required placeholder="Your mobile number" />
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="field">
+              <label for="custom-type">Jewelry Type</label>
+              <input id="custom-type" required minlength="2" placeholder="Ring, pendant, kada" />
+            </div>
+            <div class="field">
+              <label for="custom-city">City</label>
+              <input id="custom-city" required minlength="2" placeholder="Mumbai" />
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="field">
+              <label for="custom-budget">Budget</label>
+              <input id="custom-budget" required minlength="2" placeholder="Approximate budget" />
+            </div>
+            <div class="field">
+              <label for="custom-purity">Preferred Metal / Purity</label>
+              <input id="custom-purity" required minlength="2" placeholder="18K gold, 22K gold" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="custom-email">Email (optional)</label>
+            <input id="custom-email" type="email" placeholder="buyer@example.com" />
+          </div>
+
+          <div class="field">
+            <label for="custom-description">Design Notes</label>
+            <textarea id="custom-description" required minlength="10" placeholder="Describe size, quantity, finish, stone details, and anything important for quotation."></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" id="custom-review-btn">Create Custom Order Request</button>
+          <div class="status-message" id="custom-status"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>ONS Gold custom jewelry request flow.</div>
+      <div><a href="products.html">Product Catalog</a></div>
+    </div>
+  </footer>
+
+  <div class="modal" id="contact-modal">
+    <div class="modal-panel narrow">
+      <div class="modal-header">
+        <div>
+          <span class="section-label">Contact Details</span>
+          <h2 class="modal-title" id="contact-modal-title">Open Whatsapp</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="contact-modal" aria-label="Close contact form">&times;</button>
+      </div>
+      <form class="stack-form" id="contact-form">
+        <div class="field">
+          <label for="contact-name">Name (optional)</label>
+          <input id="contact-name" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="contact-phone" id="contact-phone-label">Number (required)</label>
+          <input id="contact-phone" inputmode="tel" autocomplete="tel" required />
+        </div>
+        <button type="submit" class="btn-primary" id="contact-submit-btn">Save Request and Open Whatsapp</button>
+        <div class="status-message" id="contact-status"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/index.js"></script>
+</body>
+</html>

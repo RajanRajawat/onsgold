@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products | ONS Gold</title>
+  <meta name="description" content="Browse ONS Gold wholesale products, select catalog items, and place a WhatsApp order request without an account." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/index.css" />
+</head>
+<body class="catalog-page">
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="ONS Gold home">
+        <span class="nav-logo-main">ONS Gold</span>
+        <span class="nav-logo-sub">Wholesale Jewelry</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a class="active" href="products.html">Products</a></li>
+        <li><a href="custom-orders.html">Custom Orders</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+      <div class="nav-utility">
+        <button class="hamburger" id="hamburger" type="button" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="custom-orders.html">Custom Orders</a>
+    <a href="index.html#about">About</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+
+  <main>
+    <section class="catalog-section">
+      <div class="container">
+        <div class="catalog-controls">
+          <button type="button" class="btn-primary filter-trigger-btn" id="open-filters-btn">Filter</button>
+        </div>
+
+        <div class="catalog-meta">
+          <div id="catalog-status">Loading products...</div>
+          <div id="selected-summary">0 selected</div>
+        </div>
+
+        <div class="products-grid" id="products-grid"></div>
+
+        <div class="pagination">
+          <button type="button" class="btn-quiet" id="products-prev">Previous</button>
+          <span id="products-page-info" class="muted">Page 1 of 1</span>
+          <button type="button" class="btn-quiet" id="products-next">Next</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="filters-modal">
+    <div class="modal-panel narrow">
+      <div class="modal-header">
+        <div>
+          <span class="section-label">Product Filters</span>
+          <h2 class="modal-title">Filter Products</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="filters-modal" aria-label="Close filters">&times;</button>
+      </div>
+      <form class="catalog-filter-form" id="catalog-filters">
+        <div class="field">
+          <label for="filter-search">Search</label>
+          <input type="search" id="filter-search" placeholder="Name, product ID, category" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="filter-category">Category</label>
+          <select id="filter-category">
+            <option value="">All Categories</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-metal">Metal</label>
+          <select id="filter-metal">
+            <option value="">All Metals</option>
+            <option value="gold">Gold</option>
+            <option value="silver">Silver</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-purity">Purity</label>
+          <select id="filter-purity">
+            <option value="">All Purity</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-min-weight">Min Weight</label>
+          <input type="number" id="filter-min-weight" min="0" step="0.01" placeholder="0 g" />
+        </div>
+        <div class="field">
+          <label for="filter-max-weight">Max Weight</label>
+          <input type="number" id="filter-max-weight" min="0" step="0.01" placeholder="Any" />
+        </div>
+        <div class="field">
+          <label for="filter-sort">Sort</label>
+          <select id="filter-sort">
+            <option value="featured">Featured First</option>
+            <option value="latest">Newest First</option>
+            <option value="title_asc">Name A to Z</option>
+            <option value="title_desc">Name Z to A</option>
+            <option value="weight_asc">Weight Low to High</option>
+            <option value="weight_desc">Weight High to Low</option>
+          </select>
+        </div>
+        <div class="toolbar-actions filter-actions">
+          <button type="submit" class="btn-primary">Apply</button>
+          <button type="button" class="btn-quiet" id="filters-reset">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>ONS Gold wholesale product catalog.</div>
+      <div><a href="custom-orders.html">Custom Orders</a></div>
+    </div>
+  </footer>
+
+  <div class="order-bar" id="order-bar" aria-live="polite">
+    <div class="order-bar-inner">
+      <div>
+        <div class="order-bar-title" id="order-bar-title">0 products selected</div>
+        <div class="order-bar-sub">Your order will be saved before WhatsApp opens.</div>
+      </div>
+      <button type="button" class="btn-quiet" id="clear-selection-btn">Clear</button>
+      <button type="button" class="btn-primary" id="open-order-modal-btn">Order on Whatsapp</button>
+    </div>
+  </div>
+
+  <div class="modal" id="product-modal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <span class="section-label">Product Detail</span>
+          <h2 class="modal-title" id="modal-product-title">Product</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="product-modal" aria-label="Close product details">&times;</button>
+      </div>
+      <div class="modal-grid">
+        <div>
+          <div class="modal-gallery-main">
+            <img id="modal-main-image" src="" alt="Product image" />
+          </div>
+          <div class="modal-thumbs" id="modal-thumbs"></div>
+        </div>
+        <div>
+          <div class="tag-row" id="modal-tags"></div>
+          <p class="section-intro" id="modal-description"></p>
+          <div class="detail-list">
+            <div class="detail-item"><small>Product ID</small><strong id="modal-product-id">-</strong></div>
+            <div class="detail-item"><small>Category</small><strong id="modal-category">-</strong></div>
+            <div class="detail-item"><small>Metal</small><strong id="modal-metal">-</strong></div>
+            <div class="detail-item"><small>Purity</small><strong id="modal-purity">-</strong></div>
+            <div class="detail-item"><small>Weight</small><strong id="modal-weight">-</strong></div>
+            <div class="detail-item"><small>Availability</small><strong id="modal-stock">-</strong></div>
+          </div>
+          <div class="product-actions" style="margin-top:1rem;">
+            <button type="button" class="btn-secondary" id="modal-select-btn">Select Product</button>
+            <button type="button" class="btn-primary" id="modal-order-btn">Order on Whatsapp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="contact-modal">
+    <div class="modal-panel narrow">
+      <div class="modal-header">
+        <div>
+          <span class="section-label">Contact Details</span>
+          <h2 class="modal-title" id="contact-modal-title">Order on Whatsapp</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="contact-modal" aria-label="Close contact form">&times;</button>
+      </div>
+      <div id="selected-list" class="selected-list"></div>
+      <form class="stack-form" id="contact-form">
+        <div class="field">
+          <label for="contact-name">Name (optional)</label>
+          <input id="contact-name" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="contact-phone" id="contact-phone-label">Number (optional)</label>
+          <input id="contact-phone" inputmode="tel" autocomplete="tel" />
+        </div>
+        <button type="submit" class="btn-primary" id="contact-submit-btn">Continue and Open Whatsapp</button>
+        <div class="status-message" id="contact-status"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="assets/js/index.js"></script>
+</body>
+</html>
