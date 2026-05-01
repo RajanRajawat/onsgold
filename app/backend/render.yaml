@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: onsgold-api
+    name: onsgold
     env: python
     rootDir: app/backend
     buildCommand: pip install -r requirements.txt
