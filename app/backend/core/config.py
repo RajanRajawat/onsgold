@@ -31,7 +31,6 @@ class Settings(BaseSettings):
     cloudinary_folder: str = Field("ons-gold", alias="CLOUDINARY_FOLDER")
     whatsapp_number: str = Field("9833348296", alias="WHATSAPP_NUMBER")
     frontend_base_url: str = Field("http://localhost:5500", alias="FRONTEND_BASE_URL")
-    cors_origins_raw: str = Field("*", alias="CORS_ORIGINS")
     rate_limit_public_forms: int = Field(10, alias="RATE_LIMIT_PUBLIC_FORMS")
     rate_limit_window_seconds: int = Field(300, alias="RATE_LIMIT_WINDOW_SECONDS")
     max_upload_size_mb: int = Field(8, alias="MAX_UPLOAD_SIZE_MB")
@@ -42,17 +41,6 @@ class Settings(BaseSettings):
         populate_by_name=True,
         extra="ignore",
     )
-
-    @property
-    def cors_origins(self) -> list[str]:
-        value = self.cors_origins_raw.strip()
-        if not value:
-            return ["*"]
-        return [item.strip() for item in value.split(",") if item.strip()]
-
-    @property
-    def cors_allow_all(self) -> bool:
-        return any(origin == "*" for origin in self.cors_origins)
 
     @property
     def bug_report_recipients(self) -> list[str]:
