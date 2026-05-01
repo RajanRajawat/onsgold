@@ -1,3 +1,4 @@
+import asyncio
 import smtplib
 from email.message import EmailMessage
 from typing import TypedDict
@@ -66,19 +67,19 @@ def send_email_sync(*, recipients: list[str], subject: str, body: str, attachmen
 
 async def notify_super_admins(subject: str, body: str):
     recipients = await get_super_admin_emails()
-    send_email_sync(recipients=recipients, subject=subject, body=body)
+    await asyncio.to_thread(send_email_sync, recipients=recipients, subject=subject, body=body)
 
 
 async def send_password_reset_otp(email: str, otp: str):
     settings = get_settings()
     body = f"Your ONS Gold password reset OTP is {otp}. It expires in {settings.otp_expire_minutes} minutes."
-    send_email_sync(recipients=[email], subject="ONS Gold Password Reset OTP", body=body)
+    await asyncio.to_thread(send_email_sync, recipients=[email], subject="ONS Gold Password Reset OTP", body=body)
 
 
 async def send_admin_action_otp(email: str, otp: str, action: str):
     settings = get_settings()
     body = f"Your ONS Gold admin OTP for {action} is {otp}. It expires in {settings.otp_expire_minutes} minutes."
-    send_email_sync(recipients=[email], subject="ONS Gold Admin OTP", body=body)
+    await asyncio.to_thread(send_email_sync, recipients=[email], subject="ONS Gold Admin OTP", body=body)
 
 
 async def send_admin_credentials(email: str, name: str, password: str):
@@ -89,4 +90,4 @@ async def send_admin_credentials(email: str, name: str, password: str):
         f"Temporary password: {password}\n\n"
         "Please sign in and change your password from My Account."
     )
-    send_email_sync(recipients=[email], subject="ONS Gold Admin Account Created", body=body)
+    await asyncio.to_thread(send_email_sync, recipients=[email], subject="ONS Gold Admin Account Created", body=body)

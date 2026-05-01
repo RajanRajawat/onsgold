@@ -1,3 +1,4 @@
+import asyncio
 import csv
 import io
 import secrets
@@ -7,6 +8,7 @@ from urllib.parse import quote
 from fastapi import HTTPException, status
 
 from core.config import get_settings
+from core.logging import get_logger
 from db.mongo import get_admin_collection, get_custom_request_collection, get_order_collection, get_product_collection, utc_now
 from models.inquiry import (
     CustomRequestCreate,
@@ -20,6 +22,20 @@ from models.inquiry import (
 )
 from services.dashboard_service import invalidate_dashboard_cache
 from services.email_service import notify_super_admins
+
+logger = get_logger(__name__)
+
+
+def _schedule_notification(subject: str, body: str):
+    task = asyncio.create_task(notify_super_admins(subject=subject, body=body))
+
+    def _log_failure(completed_task: asyncio.Task):
+        try:
+            completed_task.result()
+        except Exception:
+            logger.exception("Background notification failed")
+
+    task.add_done_callback(_log_failure)
 
 
 def generate_inquiry_id(prefix: str) -> str:
@@ -153,14 +169,20 @@ def build_custom_request_whatsapp_url(document: dict[str, Any]) -> str:
 
 
 async def create_order(payload: OrderCreateRequest) -> OrderResponse:
+    requested_ids = [item.product_id for item in payload.products]
+    products = await get_product_collection().find({"product_id": {"$in": requested_ids}}).to_list(length=len(requested_ids))
+    product_map = {product["product_id"]: product for product in products}
+    missing_ids = [product_id for product_id in requested_ids if product_id not in product_map]
+    if missing_ids:
+        missing = missing_ids[0]
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product {missing} not found.",
+        )
+
     snapshots: list[dict[str, Any]] = []
     for item in payload.products:
-        product = await get_product_collection().find_one({"product_id": item.product_id})
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product {item.product_id} not found.",
-            )
+        product = product_map[item.product_id]
         snapshots.append(
             {
                 "product_id": product["product_id"],
@@ -203,7 +225,7 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
             f"Created At: {now.isoformat()}",
         ]
     )
-    await notify_super_admins(subject=f"ONS Gold Inquiry {inquiry_id}", body=body)
+    _schedule_notification(subject=f"ONS Gold Inquiry {inquiry_id}", body=body)
 
     whatsapp_url = build_whatsapp_url(snapshots)
     return serialize_order(document, whatsapp_url=whatsapp_url)
@@ -243,7 +265,7 @@ async def create_custom_request(payload: CustomRequestCreate) -> CustomRequestRe
             f"Created At: {now.isoformat()}",
         ]
     )
-    await notify_super_admins(subject=f"ONS Gold Custom Request {request_id}", body=body)
+    _schedule_notification(subject=f"ONS Gold Custom Request {request_id}", body=body)
     whatsapp_url = build_custom_request_whatsapp_url(document)
     return serialize_custom_request(document, whatsapp_url=whatsapp_url)
 

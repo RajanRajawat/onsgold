@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 
 from core.dependencies import get_current_admin, require_roles
 from models.auth import (
@@ -43,13 +43,14 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: LoginRequest):
+async def login(payload: LoginRequest, background_tasks: BackgroundTasks):
     token, user = await authenticate_admin(payload.email, payload.password)
     role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
     action = "SUPER_ADMIN_LOGIN" if role_value == UserRole.super_admin.value else "ADMIN_LOGIN"
     actor_name = user.name
     actor_email = str(user.email)
-    await log_activity(
+    background_tasks.add_task(
+        log_activity,
         action=action,
         performed_by_email=actor_email,
         performed_by_name=actor_name,

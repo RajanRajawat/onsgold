@@ -60,6 +60,8 @@ let allCustomRequests = [];
 let allAdminOrders = [];
 let allAdmins = [];
 let allActivityLogs = [];
+let adminsLoaded = false;
+let activityLogsLoaded = false;
 let activeProductModalId = null;
 let productCurrentPage = 1;
 let productTotalItems = 0;
@@ -621,6 +623,10 @@ function showLogin() {
 function logout() {
   token = "";
   currentUser = null;
+  allAdmins = [];
+  allActivityLogs = [];
+  adminsLoaded = false;
+  activityLogsLoaded = false;
   clearPersistedSession();
   showLogin();
 }
@@ -650,8 +656,11 @@ async function login() {
     const data = await api("/auth/login", "POST", { email, password });
     token = data.access_token;
     currentUser = data.user;
+    allAdmins = [];
+    allActivityLogs = [];
+    adminsLoaded = false;
+    activityLogsLoaded = false;
     persistSession();
-    await fetchCurrentUser();
     showDashboard();
     await loadDashboardData();
     showToast("Login successful.", "success");
@@ -704,25 +713,22 @@ async function loadProductsPage(page = productCurrentPage) {
 }
 
 async function loadDashboardData() {
-  const requests = [
+  const [summary, orders, customRequests] = await Promise.all([
     api("/dashboard/summary"),
     api("/admin/orders"),
     api("/admin/custom-requests"),
-  ];
-  if (isSuperAdmin()) {
-    requests.push(api("/admin/all-admins"));
-    requests.push(api("/admin/activity-logs"));
-  }
-  const [summary, orders, customRequests, admins, activityLogs] = await Promise.all(requests);
+  ]);
   allOrders = orders || [];
   allCustomRequests = customRequests || [];
   allAdminOrders = normalizeAdminOrders(allOrders, allCustomRequests);
-  allAdmins = admins?.data || admins || [];
-  allActivityLogs = activityLogs || [];
   renderOverview(summary, allAdminOrders);
   renderOrders(getFilteredOrders());
-  renderAdmins(allAdmins);
-  renderActivityLogs(getFilteredActivityLogs());
+  if (adminsLoaded || !isSuperAdmin()) {
+    renderAdmins(allAdmins);
+  }
+  if (activityLogsLoaded || !isSuperAdmin()) {
+    renderActivityLogs(getFilteredActivityLogs());
+  }
   if (activeOrderModalRef && activeOrderModalKind) {
     openOrderDetailModal(activeOrderModalRef, activeOrderModalKind);
   }
@@ -731,6 +737,25 @@ async function loadDashboardData() {
   }
   toggleAdminManagementVisibility();
   await loadProductsPage(productCurrentPage);
+}
+
+async function loadAdminsData() {
+  if (!isSuperAdmin()) return;
+  const admins = await api("/admin/all-admins");
+  allAdmins = admins?.data || admins || [];
+  adminsLoaded = true;
+  renderAdmins(allAdmins);
+}
+
+async function loadActivityLogsData() {
+  if (!isSuperAdmin()) return;
+  const activityLogs = await api("/admin/activity-logs");
+  allActivityLogs = activityLogs || [];
+  activityLogsLoaded = true;
+  renderActivityLogs(getFilteredActivityLogs());
+  if (activeActivityLogId) {
+    openActivityLogModal(activeActivityLogId);
+  }
 }
 
 function renderOverview(summary, orders) {
@@ -1619,7 +1644,7 @@ async function refreshDashboardData() {
   const btn = document.getElementById("admins-refresh-btn");
   const stopLoading = setButtonLoading(btn, "Refreshing...");
   try {
-    await loadDashboardData();
+    await loadAdminsData();
   } finally {
     stopLoading();
   }
@@ -1629,7 +1654,7 @@ async function refreshActivityLogs() {
   const btn = document.getElementById("activity-refresh-btn");
   const stopLoading = setButtonLoading(btn, "Refreshing...");
   try {
-    await loadDashboardData();
+    await loadActivityLogsData();
   } finally {
     stopLoading();
   }
@@ -1655,6 +1680,12 @@ function switchPanel(panelName) {
   closeOrderDetailModal();
   closeActivityLogModal();
   closeProductDetailModal();
+  if (panelName === "admins" && isSuperAdmin() && !adminsLoaded) {
+    loadAdminsData().catch(error => showToast(error.message, "error"));
+  }
+  if (panelName === "activity-logs" && isSuperAdmin() && !activityLogsLoaded) {
+    loadActivityLogsData().catch(error => showToast(error.message, "error"));
+  }
 }
 
 function setSidebarOpen(isOpen) {

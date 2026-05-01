@@ -14,11 +14,14 @@ from models.product import ProductCreate, ProductResponse, ProductUpdate
 from services.cloudinary_service import delete_images_by_urls
 
 _RANDOM_PRODUCTS_CACHE_TTL_SECONDS = 30
+_PRODUCT_LIST_CACHE_TTL_SECONDS = 20
 _random_products_cache: dict[tuple[int, bool | None], dict[str, float | list[ProductResponse] | int]] = {}
+_product_list_cache: dict[tuple[Any, ...], dict[str, float | list[ProductResponse] | int]] = {}
 
 
-def invalidate_random_products_cache():
+def invalidate_product_caches():
     _random_products_cache.clear()
+    _product_list_cache.clear()
 
 
 def slugify(value: str) -> str:
@@ -91,7 +94,7 @@ async def create_product(payload: ProductCreate) -> ProductResponse:
     )
     result = await get_product_collection().insert_one(document)
     document["_id"] = result.inserted_id
-    invalidate_random_products_cache()
+    invalidate_product_caches()
     return serialize_product(document)
 
 
@@ -112,7 +115,7 @@ async def update_product(identifier: str, payload: ProductUpdate) -> ProductResp
     updates["updated_at"] = utc_now()
     await get_product_collection().update_one({"_id": product["_id"]}, {"$set": updates})
     product.update(updates)
-    invalidate_random_products_cache()
+    invalidate_product_caches()
     return serialize_product(product)
 
 
@@ -120,7 +123,7 @@ async def delete_product(identifier: str):
     product = await get_product_or_404(identifier)
     await delete_images_by_urls(product.get("images") or [])
     await get_product_collection().delete_one({"_id": product["_id"]})
-    invalidate_random_products_cache()
+    invalidate_product_caches()
 
 
 async def list_products(
@@ -140,6 +143,29 @@ async def list_products(
     page: int,
     page_size: int,
 ):
+    cache_key = (
+        category,
+        metal,
+        purity,
+        stock_status,
+        min_weight,
+        max_weight,
+        min_price,
+        max_price,
+        search,
+        latest,
+        sort,
+        featured,
+        page,
+        page_size,
+    )
+    cached = _product_list_cache.get(cache_key)
+    now = monotonic()
+    if cached and now < float(cached.get("expires_at") or 0.0):
+        cached_items = cached.get("items") or []
+        cached_total = int(cached.get("total") or 0)
+        return cached_items, cached_total
+
     query: dict[str, Any] = {}
     if category:
         query["category"] = {"$regex": f"^{re.escape(category)}$", "$options": "i"}
@@ -185,7 +211,13 @@ async def list_products(
     skip = (page - 1) * page_size
     total = await get_product_collection().count_documents(query)
     documents = await get_product_collection().find(query).sort(mongo_sort).skip(skip).limit(page_size).to_list(page_size)
-    return [serialize_product(item) for item in documents], total
+    items = [serialize_product(item) for item in documents]
+    _product_list_cache[cache_key] = {
+        "items": items,
+        "total": total,
+        "expires_at": now + _PRODUCT_LIST_CACHE_TTL_SECONDS,
+    }
+    return items, total
 
 
 async def list_random_products(*, limit: int, featured: bool | None = None):
