@@ -1,0 +1,5 @@
+services:
+  - type: web
+    name: your-app
+    env: python
+    pythonVersion: "3.12.9"
