@@ -46,7 +46,7 @@ function cleanPhone(value) {
 }
 
 function productImage(product) {
-  return product?.images?.[0] || product?.image || "assets/images/ring-classic.webp";
+  return product?.images?.[0] || product?.image || "assets/images/demo (2).jpg";
 }
 
 function clearProductCardSliders() {
@@ -385,7 +385,7 @@ function renderProducts() {
       : [productImage(product)];
     const price = product.price_on_request || product.price === null || product.price === undefined
       ? "Price on request"
-      : `INR ${Number(product.price).toLocaleString("en-IN")}`;
+      : `₹ ${Number(product.price).toLocaleString("en-IN")}`;
     return `
       <article class="product-card ${selected ? "selected" : ""}">
         <button class="product-media" type="button" data-view="${escapeHtml(product.product_id)}" aria-label="View ${escapeHtml(product.title)}" ${images.length > 1 ? "data-card-slider" : ""}>
@@ -592,7 +592,7 @@ function renderSelectedList() {
   }
   list.innerHTML = state.selected.map(item => `
     <div class="selected-item">
-      <img src="${escapeHtml(item.image || "assets/images/ring-classic.webp")}" alt="${escapeHtml(item.title)}" />
+      <img src="${escapeHtml(item.image || "assets/images/demo (2).jpg")}" alt="${escapeHtml(item.title)}" />
       <div>
         <strong>${escapeHtml(item.title)}</strong>
         <small>${escapeHtml(item.product_id)}</small>

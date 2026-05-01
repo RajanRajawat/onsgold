@@ -14,7 +14,7 @@ a{text-decoration:none;color:inherit}
 .login-wrap{display:grid;grid-template-columns:1fr 1fr;width:920px;max-width:96vw;min-height:580px;border:1.5px solid rgba(232,208,138,.18);border-radius:20px;overflow:hidden;box-shadow:0 36px 90px rgba(43,23,20,.32)}
 .login-panel{background:var(--offwhite);padding:56px 48px;display:flex;flex-direction:column;justify-content:center}
 .login-logo{display:flex;align-items:center;gap:11px;margin-bottom:44px}
-.login-logo-mark,.sidebar-logo-mark{width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#b72a27,#e8d08a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.admin-logo-image{width:auto;height:62px;object-fit:contain;background-color:#ffffff;border-radius:15px;flex-shrink:0}
 .login-logo-name{font-size:17px;font-weight:700;color:var(--ink)}
 .login-logo-sub{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block}
 .login-title{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px;color:var(--ink)}
