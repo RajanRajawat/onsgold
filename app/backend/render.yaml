@@ -3,3 +3,6 @@ services:
     name: your-app
     env: python
     pythonVersion: "3.12.9"
+    envVars:
+      - key: CORS_ORIGINS
+        value: "*"

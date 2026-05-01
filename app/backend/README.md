@@ -69,7 +69,7 @@ Backend:
 Frontend:
 
 - Vercel or Netlify
-- set `window.ONS_API_BASE` if the backend URL differs from `https://onsgold.onrender.com/api/v1`
+- set `window.ONS_API_BASE` to the backend root URL if needed, for example `https://onsgold.onrender.com` or `http://localhost:8000`
 
 Services:
 

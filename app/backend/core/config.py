@@ -51,6 +51,10 @@ class Settings(BaseSettings):
         return [item.strip() for item in value.split(",") if item.strip()]
 
     @property
+    def cors_allow_all(self) -> bool:
+        return any(origin == "*" for origin in self.cors_origins)
+
+    @property
     def bug_report_recipients(self) -> list[str]:
         return [item.strip() for item in self.bug_report_recipients_raw.split(",") if item.strip()]
 

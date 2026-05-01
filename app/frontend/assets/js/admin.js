@@ -1,4 +1,10 @@
-const API_BASE = window.ONS_API_BASE || "https://onsgold.onrender.com/api/v1";
+const DEFAULT_API_ROOT = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+  ? `${window.location.protocol}//${window.location.hostname}:8000`
+  : "https://onsgold.onrender.com";
+const API_ROOT = window.ONS_API_BASE || DEFAULT_API_ROOT;
+const API_BASE = /\/api\/v1$/i.test(API_ROOT)
+  ? API_ROOT.replace(/\/+$/, "")
+  : `${API_ROOT.replace(/\/+$/, "")}/api/v1`;
 const ADMIN_TOKEN_KEY = "ons_gold_admin_token";
 const ADMIN_USER_KEY = "ons_gold_admin_user";
 
