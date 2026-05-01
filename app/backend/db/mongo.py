@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
+from pymongo import DESCENDING
 
 from core.config import get_settings
 
@@ -57,6 +58,7 @@ async def init_indexes():
     await get_product_collection().create_index("purity")
     await get_product_collection().create_index("tags")
     await get_product_collection().create_index("created_at")
+    await get_product_collection().create_index([("featured", DESCENDING), ("created_at", DESCENDING)])
     await get_order_collection().create_index("inquiry_id", unique=True)
     await get_order_collection().create_index("status")
     await get_order_collection().create_index("created_at")

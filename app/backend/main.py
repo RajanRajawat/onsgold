@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -16,13 +17,25 @@ from db.mongo import close_mongo_connection, init_indexes
 
 configure_logging()
 logger = get_logger(__name__)
+_index_init_task: asyncio.Task | None = None
+
+
+async def _init_indexes_in_background():
+    try:
+        await init_indexes()
+        logger.info("MongoDB indexes initialized")
+    except Exception:
+        logger.exception("MongoDB index initialization failed")
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    global _index_init_task
     logger.info("Starting ONS Gold backend")
-    await init_indexes()
+    _index_init_task = asyncio.create_task(_init_indexes_in_background())
     yield
+    if _index_init_task and not _index_init_task.done():
+        _index_init_task.cancel()
     close_mongo_connection()
     logger.info("Stopped ONS Gold backend")
 

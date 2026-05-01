@@ -4,6 +4,7 @@ from core.dependencies import require_roles
 from models.auth import MessageResponse, UserRole
 from models.product import ProductCreate, ProductListResponse, ProductResponse, ProductUpdate
 from services.activity_log_service import log_activity
+from services.dashboard_service import invalidate_dashboard_cache
 from services.product_service import create_product, delete_product, get_product_or_404, list_products, list_random_products, serialize_product, update_product
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -66,6 +67,7 @@ async def create_product_route(
     current_admin: dict = Depends(require_roles([UserRole.super_admin.value, UserRole.admin.value])),
 ):
     product = await create_product(payload)
+    invalidate_dashboard_cache()
     await log_activity(
         action="PRODUCT_CREATED",
         performed_by_email=current_admin.get("email", ""),
@@ -85,6 +87,7 @@ async def update_product_route(
 ):
     before = serialize_product(await get_product_or_404(identifier))
     product = await update_product(identifier, payload)
+    invalidate_dashboard_cache()
     await log_activity(
         action="PRODUCT_UPDATED",
         performed_by_email=current_admin.get("email", ""),
@@ -104,6 +107,7 @@ async def delete_product_route(
 ):
     before = serialize_product(await get_product_or_404(identifier))
     await delete_product(identifier)
+    invalidate_dashboard_cache()
     await log_activity(
         action="PRODUCT_DELETED",
         performed_by_email=current_admin.get("email", ""),

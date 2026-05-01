@@ -117,7 +117,7 @@ function authHeaders() {
 
 async function api(path, method = "GET", body = null, extra = {}) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
   try {
     const response = await fetch(API_BASE + path, {
       method,
@@ -150,7 +150,7 @@ async function api(path, method = "GET", body = null, extra = {}) {
     return data;
   } catch (error) {
     if (error.name === "AbortError") {
-      throw new Error("Unable to reach the admin portal server. Please try again.");
+      throw new Error("Unable to reach the admin portal server within 20 seconds. Please try again.");
     }
     if (error instanceof Error) throw error;
     throw new Error("Unable to connect to the admin portal server.");

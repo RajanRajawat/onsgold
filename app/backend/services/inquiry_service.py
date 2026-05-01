@@ -18,6 +18,7 @@ from models.inquiry import (
     OrderProductSnapshot,
     OrderResponse,
 )
+from services.dashboard_service import invalidate_dashboard_cache
 from services.email_service import notify_super_admins
 
 
@@ -188,6 +189,7 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
     }
     result = await get_order_collection().insert_one(document)
     document["_id"] = result.inserted_id
+    invalidate_dashboard_cache()
 
     body = "\n".join(
         [
@@ -225,6 +227,7 @@ async def create_custom_request(payload: CustomRequestCreate) -> CustomRequestRe
     )
     result = await get_custom_request_collection().insert_one(document)
     document["_id"] = result.inserted_id
+    invalidate_dashboard_cache()
 
     body = "\n".join(
         [
@@ -280,6 +283,7 @@ async def update_order_status(inquiry_id: str, status_value: str):
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inquiry not found.")
+    invalidate_dashboard_cache()
 
 
 async def update_custom_request_status(request_id: str, status_value: str):
@@ -289,6 +293,7 @@ async def update_custom_request_status(request_id: str, status_value: str):
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom order request not found.")
+    invalidate_dashboard_cache()
 
 
 async def add_order_comment(inquiry_id: str, payload: OrderCommentCreateRequest, admin: dict):
