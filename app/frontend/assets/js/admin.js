@@ -1,4 +1,4 @@
-const API_BASE = window.ONS_API_BASE || "http://127.0.0.1:8000/api/v1";
+const API_BASE = window.ONS_API_BASE || "https://onsgold.onrender.com/api/v1";
 const ADMIN_TOKEN_KEY = "ons_gold_admin_token";
 const ADMIN_USER_KEY = "ons_gold_admin_user";
 

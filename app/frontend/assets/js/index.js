@@ -1,4 +1,4 @@
-const API_BASE = window.ONS_API_BASE || "http://127.0.0.1:8000/api/v1";
+const API_BASE = window.ONS_API_BASE || "https://onsgold.onrender.com/api/v1";
 const WHATSAPP_NUMBER = "9833348296";
 const SELECTED_PRODUCTS_KEY = "ons_gold_selected_products";
 const MAX_SELECTED_PRODUCTS = 25;
