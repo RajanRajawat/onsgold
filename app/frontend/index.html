@@ -116,34 +116,29 @@
       </div>
     </section>
 
-    <section class="dark-band">
+    <section class="dark-band featured-product-band">
       <div class="container">
         <div class="section-head reveal">
           <div>
-            <span class="section-label">What Retailers Can Do</span>
-            <h2 class="section-heading">Catalog orders and custom requests in one trade workflow.</h2>
+            <span class="section-label">Featured Products</span>
+            <h2 class="section-heading">Popular wholesale picks.</h2>
           </div>
-          <p class="section-intro">
-            The public website is designed for speed, while the admin portal keeps the wholesaler's team in control of products, leads, and order follow-up.
-          </p>
+          <div class="featured-products-overview">
+            <p class="section-intro">
+              Explore standout gold styles selected from the live catalog.
+            </p>
+            <a href="products.html" class="btn-secondary featured-products-view-all">View All</a>
+          </div>
         </div>
-        <div class="feature-grid reveal">
-          <article class="feature-card">
-            <h3>Browse Products</h3>
-            <p>Search and filter catalog designs by category, metal, purity, weight, and availability.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Select Designs</h3>
-            <p>Add multiple products to a temporary order list without creating an account.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Order on WhatsApp</h3>
-            <p>Submit the selected products to the backend, then open a pre-filled WhatsApp message.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Request Custom Work</h3>
-            <p>Upload a jewelry reference image and send the design brief for manual quotation.</p>
-          </article>
+        <div class="featured-products-slider reveal" id="featured-products-slider" aria-label="Featured products slider">
+          <div class="featured-products-viewport">
+            <div class="featured-products-track" id="featured-products-track">
+              <div class="featured-products-loading">Loading featured products...</div>
+            </div>
+          </div>
+          <div class="featured-products-controls">
+            <div class="featured-products-dots" id="featured-products-dots" aria-label="Featured product slides"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -257,11 +252,74 @@
   </main>
 
   <footer>
-    <div class="container footer-inner">
-      <div>ONS Gold wholesale jewelry platform.</div>
-      <div><a href="admin.html">Admin Portal</a></div>
+    <div class="container footer-shell">
+      <div class="footer-grid">
+        <div class="footer-block footer-brand">
+          <div class="footer-title">ONS Gold</div>
+          <p class="footer-copy">Wholesale gold jewellery for retailers, catalogue discovery, and custom order enquiries.</p>
+        </div>
+        <div class="footer-block">
+          <h3 class="footer-heading">Site Map</h3>
+          <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="products.html">Products</a>
+            <a href="custom-orders.html">Custom Orders</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#contact">Contact</a>
+          </div>
+        </div>
+        <div class="footer-block">
+          <h3 class="footer-heading">Office Address</h3>
+          <p class="footer-copy">Temp Address, Mumbai, India</p>
+          <p class="footer-copy">GST No. : GTSTDUMMYNUMBER</p>
+        </div>
+        <div class="footer-block">
+          <h3 class="footer-heading">Get In Touch</h3>
+          <div class="footer-links">
+            <a href="mailto:work4rajan@gmail.com">Email: work4rajan@gmail.com</a>
+            <a href="tel:+919833348296">Mobile: +91 98333 48296</a>
+            <a href="https://wa.me/9833348296" target="_blank" rel="noopener noreferrer">WhatsApp: +91 98333 48296</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>ONS Gold</span>
+        <span>Products, custom orders, and wholesale enquiries.</span>
+      </div>
     </div>
   </footer>
+
+  <div class="modal" id="product-modal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <span class="section-label">Product Detail</span>
+          <h2 class="modal-title" id="modal-product-title">Product</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="product-modal" aria-label="Close product details">&times;</button>
+      </div>
+      <div class="modal-grid">
+        <div>
+          <div class="modal-gallery-main">
+            <img id="modal-main-image" src="" alt="Product image" />
+          </div>
+          <div class="modal-thumbs" id="modal-thumbs"></div>
+        </div>
+        <div>
+          <div class="tag-row" id="modal-tags"></div>
+          <p class="section-intro" id="modal-description"></p>
+          <div class="detail-list">
+            <div class="detail-item"><small>Product ID</small><strong id="modal-product-id">-</strong></div>
+            <div class="detail-item"><small>Category</small><strong id="modal-category">-</strong></div>
+            <div class="detail-item"><small>Metal</small><strong id="modal-metal">-</strong></div>
+            <div class="detail-item"><small>Purity</small><strong id="modal-purity">-</strong></div>
+            <div class="detail-item"><small>Weight</small><strong id="modal-weight">-</strong></div>
+            <div class="detail-item"><small>Availability</small><strong id="modal-stock">-</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/js/index.js"></script>
 </body>

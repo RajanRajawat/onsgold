@@ -4,7 +4,7 @@ from core.dependencies import require_roles
 from models.auth import MessageResponse, UserRole
 from models.product import ProductCreate, ProductListResponse, ProductResponse, ProductUpdate
 from services.activity_log_service import log_activity
-from services.product_service import create_product, delete_product, get_product_or_404, list_products, serialize_product, update_product
+from services.product_service import create_product, delete_product, get_product_or_404, list_products, list_random_products, serialize_product, update_product
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -43,6 +43,15 @@ async def get_products(
         page_size=page_size,
     )
     return ProductListResponse(items=items, total=total, page=page, page_size=page_size)
+
+
+@router.get("/random", response_model=ProductListResponse)
+async def get_random_products(
+    limit: int = Query(default=9, ge=1, le=18),
+    featured: bool | None = None,
+):
+    items, total = await list_random_products(limit=limit, featured=featured)
+    return ProductListResponse(items=items, total=total, page=1, page_size=limit)
 
 
 @router.get("/{identifier}", response_model=ProductResponse)

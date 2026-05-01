@@ -174,3 +174,18 @@ async def list_products(
     total = await get_product_collection().count_documents(query)
     documents = await get_product_collection().find(query).sort(mongo_sort).skip(skip).limit(page_size).to_list(page_size)
     return [serialize_product(item) for item in documents], total
+
+
+async def list_random_products(*, limit: int, featured: bool | None = None):
+    query: dict[str, Any] = {}
+    if featured is not None:
+        query["featured"] = featured
+
+    pipeline: list[dict[str, Any]] = []
+    if query:
+        pipeline.append({"$match": query})
+    pipeline.append({"$sample": {"size": limit}})
+
+    documents = await get_product_collection().aggregate(pipeline).to_list(length=limit)
+    total = await get_product_collection().count_documents(query)
+    return [serialize_product(item) for item in documents], total

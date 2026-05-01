@@ -41,6 +41,7 @@ python script/super.py
 - `GET /api/v1/auth/me`
 - `POST /api/v1/products`
 - `GET /api/v1/products`
+- `GET /api/v1/products/random`
 - `POST /api/v1/orders`
 - `POST /api/v1/custom-requests`
 - `POST /api/v1/uploads/product-images`
