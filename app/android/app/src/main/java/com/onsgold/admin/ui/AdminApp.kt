@@ -261,7 +261,7 @@ private fun NotificationBanner(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = if (notif.isError) "❌" else "✅",
+                            text = if (notif.isError) "" else "",
                             fontSize = 18.sp,
                         )
                         Spacer(modifier = Modifier.width(10.dp))
@@ -411,7 +411,7 @@ private fun LoginScreen(
             ) {
                 BrandHeader()
                 Text(
-                    text = if (forgotMode) "Reset access" else "Admin mobile portal",
+                    text = if (forgotMode) "Reset access" else "Admin  Portal",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                 )
@@ -419,7 +419,7 @@ private fun LoginScreen(
                     text = if (forgotMode) {
                         "Request an OTP, set a new password, and get back into the portal from your phone."
                     } else {
-                        "Manage products, orders, admins, and account operations with the same gold-red identity as the website."
+                        "Manage products, orders, admins, and account operations for ONS GOLD."
                     },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -2034,7 +2034,7 @@ private fun MoreScreen(
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Support", fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Report issues from the mobile app directly to the admin portal support flow.",
+                        "Report issues from the mobile app directly to developer.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     OutlinedButton(onClick = onOpenBugDialog, modifier = Modifier.fillMaxWidth()) {
@@ -2131,7 +2131,7 @@ private fun ProductEditorSheet(
                 onValueChange = { weight = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Weight (grams)") },
-                supportingText = { Text("Use at least 3 decimal places, for example 3.441") },
+                supportingText = { Text("") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
             DropdownField(

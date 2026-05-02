@@ -89,8 +89,8 @@ def serialize_order(
     return OrderResponse(
         id=str(document["_id"]),
         inquiry_id=document["inquiry_id"],
-        customer_name=document.get("customer_name") or "Not provided",
-        phone=document.get("phone") or "Not provided",
+        customer_name=document.get("customer_name") or "Name not provided",
+        phone=document.get("phone") or "Name not provided",
         notes=document.get("notes"),
         status=document["status"],
         inquiry_source=document["inquiry_source"],
@@ -109,7 +109,7 @@ def serialize_custom_request(
     return CustomRequestResponse(
         id=str(document["_id"]),
         request_id=document["request_id"],
-        customer_name=document.get("customer_name") or "Not provided",
+        customer_name=document.get("customer_name") or "Name not provided",
         phone=document["phone"],
         city=document["city"],
         jewelry_type=document["jewelry_type"],
@@ -214,8 +214,8 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
 
     inquiry_id = await generate_inquiry_id()
     now = utc_now()
-    customer_name = payload.customer_name or "Not provided"
-    phone = payload.phone or "Not provided"
+    customer_name = payload.customer_name or "Name not provided"
+    phone = payload.phone or "Name not provided"
     should_persist = bool(payload.phone)
     document = {
         "inquiry_id": inquiry_id,
@@ -258,7 +258,7 @@ async def create_custom_request(payload: CustomRequestCreate) -> CustomRequestRe
     request_id = await generate_inquiry_id()
     now = utc_now()
     document = payload.model_dump()
-    customer_name = payload.customer_name or "Not provided"
+    customer_name = payload.customer_name or "Name not provided"
     document.update(
         {
             "request_id": request_id,
