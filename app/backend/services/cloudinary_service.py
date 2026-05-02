@@ -93,7 +93,7 @@ async def upload_image(file: UploadFile, folder_suffix: str) -> str:
 
 
 async def upload_images(files: list[UploadFile], folder_suffix: str) -> list[str]:
-    return [await upload_image(file, folder_suffix) for file in files]
+    return list(await asyncio.gather(*(upload_image(file, folder_suffix) for file in files)))
 
 
 async def delete_images_by_urls(urls: list[str]) -> None:

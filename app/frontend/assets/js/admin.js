@@ -78,6 +78,8 @@ let activeAdminModalEmail = null;
 let bugImageBase64 = null;
 let bugImageMime = null;
 let toastTimer = 0;
+let productSearchTimer = 0;
+let loginWarmupStarted = false;
 
 function showToast(message, type = "") {
   const toast = document.getElementById("toast");
@@ -151,7 +153,8 @@ function authHeaders() {
 
 async function api(path, method = "GET", body = null, extra = {}) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutMs = Number(extra.timeoutMs) > 0 ? Number(extra.timeoutMs) : 20000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(API_BASE + path, {
       method,
@@ -184,13 +187,25 @@ async function api(path, method = "GET", body = null, extra = {}) {
     return data;
   } catch (error) {
     if (error.name === "AbortError") {
-      throw new Error("Unable to reach the admin portal server within 20 seconds. Please try again.");
+      throw new Error(`Unable to reach the admin portal server within ${Math.ceil(timeoutMs / 1000)} seconds. Please try again.`);
     }
     if (error instanceof Error) throw error;
     throw new Error("Unable to connect to the admin portal server.");
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+function warmBackendConnection() {
+  if (loginWarmupStarted) return;
+  loginWarmupStarted = true;
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 45000);
+  fetch(`${API_BASE}/dashboard/login-summary`, { signal: controller.signal })
+    .catch(() => {})
+    .finally(() => {
+      window.clearTimeout(timeoutId);
+    });
 }
 
 function stockLabel(value) {
@@ -686,6 +701,7 @@ function showLogin() {
   setSidebarOpen(false);
   document.getElementById("dashboard").style.display = "none";
   document.getElementById("login-screen").style.display = "flex";
+  warmBackendConnection();
 }
 
 function logout() {
@@ -770,7 +786,26 @@ async function loadProductsPage(page = productCurrentPage) {
   updateProductsPagination(productTotalItems);
 }
 
-async function loadDashboardData() {
+function renderRoleBoundPanels() {
+  if (adminsLoaded || !isSuperAdmin()) {
+    renderAdmins(allAdmins);
+  }
+  if (activityLogsLoaded || !isSuperAdmin()) {
+    renderActivityLogs(getFilteredActivityLogs());
+  }
+}
+
+function restoreOpenProductModal() {
+  if (!activeProductModalId) return;
+  const productExists = allProducts.some(item => item.product_id === activeProductModalId);
+  if (productExists) {
+    openProductDetailModal(activeProductModalId);
+    return;
+  }
+  closeProductDetailModal();
+}
+
+async function loadOverviewAndOrders() {
   const [summary, orders, customRequests] = await Promise.all([
     api("/dashboard/summary"),
     api("/admin/orders"),
@@ -781,20 +816,31 @@ async function loadDashboardData() {
   allAdminOrders = normalizeAdminOrders(allOrders, allCustomRequests);
   renderOverview(summary, allAdminOrders);
   renderOrders(getFilteredOrders());
-  if (adminsLoaded || !isSuperAdmin()) {
-    renderAdmins(allAdmins);
-  }
-  if (activityLogsLoaded || !isSuperAdmin()) {
-    renderActivityLogs(getFilteredActivityLogs());
-  }
+  renderRoleBoundPanels();
   if (activeOrderModalRef && activeOrderModalKind) {
     openOrderDetailModal(activeOrderModalRef, activeOrderModalKind);
   }
+  toggleAdminManagementVisibility();
+}
+
+async function loadProductsSection(page = productCurrentPage) {
+  await loadProductsPage(page);
+  restoreOpenProductModal();
+}
+
+async function refreshActivityLogsIfLoaded() {
+  if (!activityLogsLoaded || !isSuperAdmin()) return;
+  await loadActivityLogsData();
+}
+
+async function loadDashboardData() {
+  await Promise.all([
+    loadOverviewAndOrders(),
+    loadProductsSection(productCurrentPage),
+  ]);
   if (activeActivityLogId) {
     openActivityLogModal(activeActivityLogId);
   }
-  toggleAdminManagementVisibility();
-  await loadProductsPage(productCurrentPage);
 }
 
 async function loadAdminsData() {
@@ -1106,7 +1152,11 @@ async function saveProduct(event) {
     showToast("Product created successfully.", "success");
     resetProductForm();
     productCurrentPage = 1;
-    await loadDashboardData();
+    await Promise.all([
+      loadOverviewAndOrders(),
+      loadProductsSection(1),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(msg, error.message, "error");
     showToast(error.message, "error");
@@ -1144,7 +1194,11 @@ async function saveProductFromModal(event) {
     await api(`/products/${activeProductModalId}`, "PUT", payload);
     showToast("Product updated.", "success");
     closeProductDetailModal();
-    await loadDashboardData();
+    await Promise.all([
+      loadOverviewAndOrders(),
+      loadProductsSection(productCurrentPage),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(msg, error.message, "error");
     showToast(error.message, "error");
@@ -1162,7 +1216,11 @@ async function deleteProductFromModal() {
     await api(`/products/${activeProductModalId}`, "DELETE");
     showToast("Product deleted.", "success");
     closeProductDetailModal();
-    await loadDashboardData();
+    await Promise.all([
+      loadOverviewAndOrders(),
+      loadProductsSection(productCurrentPage),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(document.getElementById("pdm-msg"), error.message, "error");
     showToast(error.message, "error");
@@ -1226,7 +1284,10 @@ async function confirmRegisterAdmin() {
     document.getElementById("register-otp-btn").textContent = "Request OTP";
     showMsg(msg, "Admin account created and credentials emailed.", "success");
     showToast("Admin account created successfully.", "success");
-    await loadDashboardData();
+    await Promise.all([
+      loadAdminsData(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(msg, error.message, "error");
     showToast(error.message, "error");
@@ -1279,7 +1340,10 @@ async function confirmDeleteAdminFromForm() {
     document.getElementById("da-otp-btn").textContent = "Request OTP";
     showMsg(msg, "Admin account removed successfully.", "success");
     showToast("Admin account removed successfully.", "success");
-    await loadDashboardData();
+    await Promise.all([
+      loadAdminsData(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(msg, error.message, "error");
     showToast(error.message, "error");
@@ -1340,7 +1404,10 @@ async function saveAdminCredentials() {
     });
     showToast("Admin credentials updated.", "success");
     closeAdminModal();
-    await loadDashboardData();
+    await Promise.all([
+      loadAdminsData(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(msg, error.message, "error");
     showToast(error.message, "error");
@@ -1388,7 +1455,10 @@ async function confirmModalDeleteAdmin() {
     await api("/admin/delete-admin", "POST", { email: activeAdminModalEmail, otp });
     showToast("Admin account removed.", "success");
     closeAdminModal();
-    await loadDashboardData();
+    await Promise.all([
+      loadAdminsData(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showMsg(msg, error.message, "error");
     showToast(error.message, "error");
@@ -1444,6 +1514,7 @@ async function submitProfileName() {
       email: currentUser.email,
     });
     currentUser = updated;
+    persistSession();
     setUserUI();
     showMsg(msg, "Name updated successfully.", "success");
     showToast("Name updated.", "success");
@@ -1522,7 +1593,10 @@ async function updateAdminOrderStatus(orderKind, orderId, status) {
       : `/admin/orders/${orderId}/status`;
     await api(route, "PATCH", { status });
     showToast("Order status updated.", "success");
-    await loadDashboardData();
+    await Promise.all([
+      loadOverviewAndOrders(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showToast(error.message, "error");
   }
@@ -1540,7 +1614,10 @@ async function deleteOrderFromTable(orderRef, orderKind, button) {
     await api(route, "DELETE");
     showToast(`${orderKind === "custom_order" ? "Custom order request" : "Catalog order"} deleted.`, "success");
     closeOrderDetailModal();
-    await loadDashboardData();
+    await Promise.all([
+      loadOverviewAndOrders(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } catch (error) {
     showToast(error.message, "error");
   } finally {
@@ -1590,24 +1667,39 @@ async function refreshOrdersData() {
   const btn = document.getElementById("orders-refresh-btn");
   const stopLoading = setButtonLoading(btn, "Refreshing...");
   try {
-    await loadDashboardData();
+    await Promise.all([
+      loadOverviewAndOrders(),
+      refreshActivityLogsIfLoaded(),
+    ]);
   } finally {
     stopLoading();
   }
+}
+
+function formatForgotPasswordError(message) {
+  if (String(message || "").includes("Unable to send the password reset OTP email right now.")) {
+    return "Reset OTP email could not be delivered right now. Please try again shortly.";
+  }
+  return message;
 }
 
 async function sendForgotOtp() {
   const msg = document.getElementById("fp-msg1");
   const btn = document.getElementById("fp-send-btn");
   clearMsg(msg);
+  const email = document.getElementById("fp-email").value.trim();
+  if (!email) {
+    showMsg(msg, "Enter your registered admin email address.");
+    return;
+  }
   const stopLoading = setButtonLoading(btn, "Sending OTP...");
   try {
-    await api("/auth/forgot-password/request", "POST", { email: document.getElementById("fp-email").value.trim() });
+    await api("/auth/forgot-password/request", "POST", { email }, { timeoutMs: 45000 });
     showMsg(msg, "OTP sent if the account exists.", "success");
     document.getElementById("forgot-step1").classList.remove("active");
     document.getElementById("forgot-step2").classList.add("active");
   } catch (error) {
-    showMsg(msg, error.message);
+    showMsg(msg, formatForgotPasswordError(error.message));
   } finally {
     stopLoading();
   }
@@ -1619,6 +1711,12 @@ async function resetForgotPassword() {
   clearMsg(msg);
   const newPassword = document.getElementById("fp-new-password").value;
   const confirmPassword = document.getElementById("fp-confirm-password").value;
+  const email = document.getElementById("fp-email").value.trim();
+  const otp = document.getElementById("fp-otp").value.trim();
+  if (!email || !otp) {
+    showMsg(msg, "Enter your email address and the OTP you received.");
+    return;
+  }
   if (newPassword !== confirmPassword) {
     showMsg(msg, "Passwords do not match.");
     return;
@@ -1626,10 +1724,10 @@ async function resetForgotPassword() {
   const stopLoading = setButtonLoading(btn, "Resetting...");
   try {
     await api("/auth/forgot-password/reset", "POST", {
-      email: document.getElementById("fp-email").value.trim(),
-      otp: document.getElementById("fp-otp").value.trim(),
+      email,
+      otp,
       new_password: newPassword,
-    });
+    }, { timeoutMs: 30000 });
     showMsg(msg, "Password reset successful. You can sign in now.", "success");
   } catch (error) {
     showMsg(msg, error.message);
@@ -1639,10 +1737,13 @@ async function resetForgotPassword() {
 }
 
 function filterProducts() {
-  productCurrentPage = 1;
-  loadProductsPage(1).catch(error => {
-    showToast(error.message, "error");
-  });
+  window.clearTimeout(productSearchTimer);
+  productSearchTimer = window.setTimeout(() => {
+    productCurrentPage = 1;
+    loadProductsSection(1).catch(error => {
+      showToast(error.message, "error");
+    });
+  }, 250);
 }
 
 function filterOrders() {

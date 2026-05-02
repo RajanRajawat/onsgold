@@ -86,14 +86,22 @@ def send_email_sync(
             filename=attachment["filename"],
         )
 
+    timeout_seconds = max(1, int(settings.smtp_timeout_seconds))
+    use_implicit_ssl = settings.smtp_use_ssl or settings.smtp_port == 465
+
     try:
-        if settings.smtp_port == 465 and not settings.smtp_use_tls:
-            with smtplib.SMTP_SSL(settings.smtp_host, settings.smtp_port, timeout=20, context=ssl.create_default_context()) as server:
+        if use_implicit_ssl:
+            with smtplib.SMTP_SSL(
+                settings.smtp_host,
+                settings.smtp_port,
+                timeout=timeout_seconds,
+                context=ssl.create_default_context(),
+            ) as server:
                 if settings.smtp_username and settings.smtp_password:
                     server.login(settings.smtp_username, settings.smtp_password)
                 server.send_message(message)
         else:
-            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=20) as server:
+            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=timeout_seconds) as server:
                 server.ehlo()
                 if settings.smtp_use_tls:
                     server.starttls(context=ssl.create_default_context())
