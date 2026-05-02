@@ -126,6 +126,10 @@
           <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
           Edit Profile
         </button>
+        <button class="nav-item" id="sidebar-report-bug-btn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C13 5.06 12.51 5 12 5s-1 .06-1.42.17L8.41 3 7 4.41l1.63 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.06.33-.09.66-.09 1v1H4v2h2v1c0 .34.03.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.06-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.03-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+          Report Bug
+        </button>
       </div>
 
       <div class="sidebar-user">
@@ -171,76 +175,25 @@
             <p>Create, edit, and remove wholesale catalog products with multiple image uploads.</p>
           </div>
 
-          <div class="form-card product-form-card">
-            <div class="form-card-title" id="product-form-title">Create Product</div>
-            <form id="product-form" class="product-form-grid">
-              <div class="field-group product-span-4"><label>Product Name</label><input type="text" id="product-title" required /></div>
-              <div class="field-group product-span-2">
-                <label>Category</label>
-                <select id="product-category" required>
-                  <option value="">Select jewelry category</option>
-                  <option value="Ring">Ring</option>
-                  <option value="Necklace">Necklace</option>
-                  <option value="Chain">Chain</option>
-                  <option value="Pendant">Pendant</option>
-                  <option value="Locket">Locket</option>
-                  <option value="Mangalsutra">Mangalsutra</option>
-                  <option value="Choker">Choker</option>
-                  <option value="Haram">Haram</option>
-                  <option value="Bridal Set">Bridal Set</option>
-                  <option value="Jewelry Set">Jewelry Set</option>
-                  <option value="Earrings">Earrings</option>
-                  <option value="Jhumka">Jhumka</option>
-                  <option value="Bali">Bali</option>
-                  <option value="Stud">Stud</option>
-                  <option value="Nose Pin">Nose Pin</option>
-                  <option value="Nath">Nath</option>
-                  <option value="Maang Tikka">Maang Tikka</option>
-                  <option value="Bracelet">Bracelet</option>
-                  <option value="Bangle">Bangle</option>
-                  <option value="Kada">Kada</option>
-                  <option value="Anklet">Anklet</option>
-                  <option value="Toe Ring">Toe Ring</option>
-                  <option value="Armlet">Armlet</option>
-                  <option value="Kamarbandh">Kamarbandh</option>
-                  <option value="Brooch">Brooch</option>
-                  <option value="Temple Jewelry">Temple Jewelry</option>
-                  <option value="Gold Coin">Gold Coin</option>
-                </select>
-              </div>
-              <div class="field-group product-span-1">
-                <label>Metal</label>
-                <select id="product-metal" required>
-                  <option value="gold">Gold</option>
-                  <option value="silver">Silver</option>
-                </select>
-              </div>
-              <div class="field-group product-span-1"><label>Purity</label><input type="text" id="product-purity" required /></div>
-              <div class="field-group product-span-1"><label>Weight</label><input type="number" id="product-weight" step="0.001" min="0" required /></div>
-              <div class="field-group product-span-1">
-                <label>Stock Status</label>
-                <select id="product-stock">
-                  <option value="in_stock">In Stock</option>
-                  <option value="low_stock">Low Stock</option>
-                  <option value="out_of_stock">Out of Stock</option>
-                  <option value="made_to_order">Made to Order</option>
-                </select>
-              </div>
-              <div class="field-group product-span-2"><label>Tags</label><input type="text" id="product-tags" placeholder="bridal, temple, festive" /></div>
-              <div class="field-group product-span-2"><label>Description</label><textarea id="product-description" required></textarea></div>
-              <div class="field-group product-span-2"><label>Product Images</label><input type="file" id="product-images" accept="image/*" multiple /></div>
-              <div class="form-actions product-form-actions product-span-4">
-                <button class="btn-sm btn-accent" type="submit">Save Product</button>
-              </div>
-              <div class="msg-box product-span-4" id="product-form-msg"></div>
-            </form>
-          </div>
-
           <div class="table-card">
             <div class="table-header">
               <div class="table-title">All Products</div>
               <div class="table-actions">
                 <input class="search-input" id="products-search" placeholder="Search name, product ID, category" />
+                <div class="icon-action-row">
+                  <button class="icon-pill-btn" id="products-prev-btn" type="button" aria-label="Previous page" title="Previous page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <button class="icon-pill-btn" id="products-next-btn" type="button" aria-label="Next page" title="Next page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                  <button class="icon-pill-btn" id="products-refresh-btn" type="button" aria-label="Refresh products" title="Refresh products">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v6h-6"/></svg>
+                  </button>
+                  <button class="icon-pill-btn icon-pill-btn-primary" id="products-add-btn" type="button" aria-label="Add product" title="Add product">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
             <div class="table-scroll">
@@ -253,20 +206,15 @@
                     <th>Purity</th>
                     <th>Weight</th>
                     <th>Status</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="products-table-body">
-                  <tr><td colspan="7"><div class="empty-state">No products loaded yet.</div></td></tr>
+                  <tr><td colspan="6"><div class="empty-state">No products loaded yet.</div></td></tr>
                 </tbody>
               </table>
             </div>
             <div class="table-pagination">
               <div class="table-pagination-info" id="products-page-info">Page 1 of 1</div>
-              <div class="table-pagination-actions">
-                <button class="btn-sm btn-outline" id="products-prev-btn" type="button">Previous</button>
-                <button class="btn-sm btn-outline" id="products-next-btn" type="button">Next</button>
-              </div>
             </div>
           </div>
         </section>
@@ -446,7 +394,7 @@
   </div>
 
   <div class="modal-overlay" id="bug-report-modal">
-    <div class="modal" style="max-width:560px;">
+    <div class="modal sheet-modal bug-sheet-modal">
       <button class="modal-close" id="bug-modal-close" type="button" aria-label="Close">&times;</button>
       <div class="bug-modal-head">
         <div class="bug-modal-icon">
@@ -458,7 +406,7 @@
         </div>
       </div>
 
-      <div class="field-group">
+      <div class="field-group" id="pdm-current-images-wrap">
         <label>Bug Title</label>
         <input type="text" id="bug-title" placeholder="Brief description of the bug" />
       </div>
@@ -590,11 +538,11 @@
   </div>
 
   <div class="modal-overlay" id="order-detail-modal">
-    <div class="modal order-detail-modal">
+    <div class="modal order-detail-modal sheet-modal">
       <button class="modal-close" id="order-detail-close" type="button" aria-label="Close">×</button>
       <h3 class="modal-title" id="order-modal-title">Order Details</h3>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+      <div class="sheet-detail-grid">
         <div class="modal-section">
           <div class="modal-label">Order ID</div>
           <div class="modal-val" id="order-modal-id">-</div>
@@ -634,6 +582,19 @@
         <textarea class="comment-input" id="order-comment-text" placeholder="Add a comment or note..."></textarea>
         <button class="btn-sm btn-accent modal-wide-btn" id="order-add-comment-btn" type="button">Add Comment</button>
         <div class="msg-box" id="order-comment-msg"></div>
+      </div>
+
+      <div class="sheet-footer">
+        <button class="btn-sm btn-outline" id="order-save-status-btn" type="button">Save Status</button>
+        <button class="btn-card-delete order-delete-btn" id="order-delete-btn" type="button" title="Delete order" aria-label="Delete order">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 3h6"></path>
+            <path d="M4 7h16"></path>
+            <path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -685,12 +646,12 @@
   </div>
 
   <div class="modal-overlay" id="product-detail-modal">
-    <div class="modal product-modal">
+    <div class="modal product-modal sheet-modal">
       <button class="modal-close" id="product-detail-close" type="button" aria-label="Close">×</button>
       <div class="product-modal-head">
         <div>
           <h3 class="modal-title" id="pdm-title">Edit Product</h3>
-          <p class="product-modal-copy">Update product details, replace images, or remove the product from this popup.</p>
+          <p class="product-modal-copy" id="pdm-copy">Update product details, replace images, or remove the product from this slider.</p>
         </div>
       </div>
 
@@ -769,9 +730,13 @@
         </div>
         <div class="product-image-grid" id="pdm-new-images"></div>
         <div class="msg-box" id="pdm-msg"></div>
-        <div class="form-actions">
-          <button class="btn-sm btn-accent" type="submit" id="pdm-save-btn">Save Changes</button>
-          <button class="btn-sm btn-danger" type="button" id="pdm-delete-btn">Delete Product</button>
+        <div class="sheet-footer">
+          <button class="icon-pill-btn icon-pill-btn-primary" type="submit" id="pdm-save-btn" aria-label="Save product" title="Save product">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M9 4v6h6V4"/><path d="M9 19h6"/></svg>
+          </button>
+          <button class="icon-pill-btn" type="button" id="pdm-delete-btn" aria-label="Delete product" title="Delete product">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"/><path d="M4 7h16"/><path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
         </div>
       </form>
     </div>

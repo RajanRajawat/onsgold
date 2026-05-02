@@ -1,5 +1,6 @@
 package com.onsgold.admin.ui
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,6 +48,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
@@ -95,6 +97,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -119,6 +122,7 @@ import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 private val ProductCategories = listOf(
     "Ring", "Necklace", "Chain", "Pendant", "Locket", "Mangalsutra", "Choker", "Haram",
@@ -433,10 +437,16 @@ private fun HomeScreen(
 ) {
     var destination by rememberSaveable { mutableStateOf(RootDestination.Products) }
     var productDialog by remember { mutableStateOf<ProductEditorState?>(null) }
-    var selectedOrder by remember { mutableStateOf<AdminOrderItem?>(null) }
+    var selectedOrderRef by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedOrderKind by rememberSaveable { mutableStateOf<String?>(null) }
     var profileDialog by remember { mutableStateOf<ProfileDialogMode?>(null) }
     var bugDialogOpen by remember { mutableStateOf(false) }
     var moreMenuExpanded by remember { mutableStateOf(false) }
+    var previewProduct by remember { mutableStateOf<OrderProductSnapshot?>(null) }
+
+    val selectedOrder = state.orders.firstOrNull {
+        it.orderRef == selectedOrderRef && it.orderKind == selectedOrderKind
+    }
 
     val moreDestinations = buildList {
         add(RootDestination.Account)
@@ -457,10 +467,7 @@ private fun HomeScreen(
     MainScaffold(
         modifier = Modifier.fillMaxSize(),
         destination = destination,
-        state = state,
         snackbarHostState = snackbarHostState,
-        onRefresh = viewModel::refreshAll,
-        onCreateProduct = { productDialog = ProductEditorState() },
         onOpenMoreMenu = { moreMenuExpanded = true },
         moreMenuExpanded = moreMenuExpanded,
         moreDestinations = moreDestinations,
@@ -487,8 +494,13 @@ private fun HomeScreen(
                 state = state,
                 onSearchProducts = { viewModel.loadProducts(page = 1, search = it) },
                 onChangeProductPage = { viewModel.loadProducts(page = it, search = state.productSearch) },
+                onRefreshProducts = { viewModel.loadProducts(page = state.productPage, search = state.productSearch) },
+                onCreateProduct = { productDialog = ProductEditorState() },
                 onEditProduct = { productDialog = ProductEditorState.fromProduct(it) },
-                onOpenOrder = { selectedOrder = it },
+                onOpenOrder = {
+                    selectedOrderRef = it.orderRef
+                    selectedOrderKind = it.orderKind
+                },
                 onRequestAdminsRefresh = viewModel::loadAdmins,
                 onRequestActivityRefresh = viewModel::loadActivityLogs,
                 onOpenProfileDialog = { profileDialog = it },
@@ -499,7 +511,7 @@ private fun HomeScreen(
     )
 
     productDialog?.let { editor ->
-        ProductEditorDialog(
+        ProductEditorSheet(
             initial = editor,
             onDismiss = { productDialog = null },
             onSave = { payload, imageUris ->
@@ -521,12 +533,17 @@ private fun HomeScreen(
         OrderDetailSheet(
             order = order,
             currentUser = state.currentUser,
-            onDismiss = { selectedOrder = null },
+            onDismiss = {
+                selectedOrderRef = null
+                selectedOrderKind = null
+            },
             onUpdateStatus = { status -> viewModel.updateOrderStatus(order.orderRef, order.orderKind, status) },
             onAddComment = { comment -> viewModel.addOrderComment(order.orderRef, order.orderKind, comment) },
+            onOpenProduct = { previewProduct = it },
             onDelete = {
                 viewModel.deleteOrder(order.orderRef, order.orderKind)
-                selectedOrder = null
+                selectedOrderRef = null
+                selectedOrderKind = null
             },
         )
     }
@@ -550,7 +567,7 @@ private fun HomeScreen(
     }
 
     if (bugDialogOpen) {
-        BugReportDialog(
+        BugReportSheet(
             onDismiss = { bugDialogOpen = false },
             onSubmit = { title, severity, description, imageUri ->
                 viewModel.reportBug(title, severity, description, imageUri)
@@ -558,17 +575,20 @@ private fun HomeScreen(
             },
         )
     }
+
+    previewProduct?.let { snapshot ->
+        ProductPreviewDialog(
+            snapshot = snapshot,
+            onDismiss = { previewProduct = null },
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainScaffold(
     modifier: Modifier,
     destination: RootDestination,
-    state: AdminUiState,
     snackbarHostState: SnackbarHostState,
-    onRefresh: () -> Unit,
-    onCreateProduct: () -> Unit,
     onOpenMoreMenu: () -> Unit,
     moreMenuExpanded: Boolean,
     moreDestinations: List<RootDestination>,
@@ -581,49 +601,7 @@ private fun MainScaffold(
 ) {
     Scaffold(
         modifier = modifier,
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-                navigationIcon = {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "ONS Gold logo",
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(5.dp),
-                        contentScale = ContentScale.Fit,
-                    )
-                },
-                title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(destination.title, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            text = state.currentUser?.email.orEmpty(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onRefresh) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-                    }
-                },
-            )
-        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            if (destination == RootDestination.Products) {
-                FloatingActionButton(onClick = onCreateProduct) {
-                    Icon(Icons.Default.Add, contentDescription = "Create product")
-                }
-            }
-        },
         bottomBar = {
             AdminBottomBar(
                 destination = destination,
@@ -732,6 +710,8 @@ private fun AdminContent(
     state: AdminUiState,
     onSearchProducts: (String) -> Unit,
     onChangeProductPage: (Int) -> Unit,
+    onRefreshProducts: () -> Unit,
+    onCreateProduct: () -> Unit,
     onEditProduct: (ProductResponse) -> Unit,
     onOpenOrder: (AdminOrderItem) -> Unit,
     onRequestAdminsRefresh: () -> Unit,
@@ -755,6 +735,8 @@ private fun AdminContent(
                 val totalPages = maxOf(1, (state.productTotal + AdminViewModel.PAGE_SIZE - 1) / AdminViewModel.PAGE_SIZE)
                 if (state.productPage < totalPages) onChangeProductPage(state.productPage + 1)
             },
+            onRefresh = onRefreshProducts,
+            onCreateProduct = onCreateProduct,
             onEditProduct = onEditProduct,
         )
         RootDestination.Orders -> OrdersScreen(
@@ -784,7 +766,6 @@ private fun AdminContent(
         )
         RootDestination.Account -> AccountScreen(
             padding = screenPadding(scaffoldPadding),
-            currentUser = state.currentUser,
             onOpenProfileDialog = onOpenProfileDialog,
             onOpenBugDialog = onOpenBugDialog,
         )
@@ -794,7 +775,7 @@ private fun AdminContent(
 private fun screenPadding(scaffoldPadding: PaddingValues): PaddingValues {
     return PaddingValues(
         start = 16.dp,
-        top = scaffoldPadding.calculateTopPadding() + 16.dp,
+        top = 16.dp,
         end = 16.dp,
         bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
     )
@@ -860,6 +841,8 @@ private fun ProductsScreen(
     onSearch: (String) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit,
+    onRefresh: () -> Unit,
+    onCreateProduct: () -> Unit,
     onEditProduct: (ProductResponse) -> Unit,
 ) {
     var query by rememberSaveable(currentSearch) { mutableStateOf(currentSearch) }
@@ -882,6 +865,34 @@ private fun ProductsScreen(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true,
         )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            SheetActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Previous page",
+                enabled = page > 1,
+                onClick = onPrev,
+            )
+            SheetActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Next page",
+                enabled = page < totalPages,
+                onClick = onNext,
+            )
+            SheetActionButton(
+                icon = Icons.Default.Refresh,
+                contentDescription = "Refresh products",
+                onClick = onRefresh,
+            )
+            SheetActionButton(
+                icon = Icons.Default.Add,
+                contentDescription = "Add product",
+                primary = true,
+                onClick = onCreateProduct,
+            )
+        }
         if (loading && products.isEmpty()) {
             LoadingCard("Loading products")
         } else if (products.isEmpty()) {
@@ -896,24 +907,11 @@ private fun ProductsScreen(
                 }
             }
         }
-        Card {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    IconButton(onClick = onPrev, enabled = page > 1) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous page")
-                    }
-                    IconButton(onClick = onNext, enabled = page < totalPages) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next page")
-                    }
-                }
-            }
-        }
+        Text(
+            text = "Page $page of $totalPages",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -946,9 +944,6 @@ private fun ProductCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
-                }
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit product")
                 }
             }
         }
@@ -1011,6 +1006,7 @@ private fun OrderRowCard(
     order: AdminOrderItem,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1028,7 +1024,17 @@ private fun OrderRowCard(
                 }
                 ChipRow(values = listOf(labelize(order.orderKind.removeSuffix("_order")), labelize(order.status)))
             }
-            Text(order.phone, style = MaterialTheme.typography.bodyMedium)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(order.phone, style = MaterialTheme.typography.bodyMedium)
+                IconButton(onClick = {
+                    val phone = normalizePhone(order.phone)
+                    if (phone.isNotBlank()) {
+                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                    }
+                }) {
+                    Icon(Icons.Default.Phone, contentDescription = "Call ${order.phone}")
+                }
+            }
             Text(formatDate(order.createdAt), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -1381,7 +1387,6 @@ private fun JsonBlock(title: String, text: String?) {
 @Composable
 private fun AccountScreen(
     padding: PaddingValues,
-    currentUser: UserResponse?,
     onOpenProfileDialog: (ProfileDialogMode) -> Unit,
     onOpenBugDialog: () -> Unit,
 ) {
@@ -1390,25 +1395,6 @@ private fun AccountScreen(
         contentPadding = padding,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            SectionHeroCard(
-                title = "Account and support",
-                body = "Update your admin profile, credentials, and support reports from one place.",
-                highlights = listOf(
-                    labelize(currentUser?.role ?: "admin"),
-                    currentUser?.email.orEmpty(),
-                ).filter { it.isNotBlank() },
-            )
-        }
-        item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AccountLine(Icons.Default.Person, "Name", currentUser?.name ?: "-")
-                    AccountLine(Icons.Default.Email, "Email", currentUser?.email ?: "-")
-                    AccountLine(Icons.Default.AdminPanelSettings, "Role", labelize(currentUser?.role ?: "-"))
-                }
-            }
-        }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1452,7 +1438,7 @@ private fun AccountScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProductEditorDialog(
+private fun ProductEditorSheet(
     initial: ProductEditorState,
     onDismiss: () -> Unit,
     onSave: (ProductPayload, List<Uri>) -> Unit,
@@ -1482,123 +1468,130 @@ private fun ProductEditorDialog(
         description.length >= 10 &&
         weight.toDoubleOrNull()?.let { it > 0 } == true &&
         (selectedImages.isNotEmpty() || initial.existingImages.isNotEmpty())
+    var confirmDelete by rememberSaveable(initial.productId) { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 620.dp)
-                .padding(12.dp),
-            shape = RoundedCornerShape(28.dp),
+                .padding(20.dp)
+                .heightIn(max = 720.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-                    .heightIn(max = 640.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+            Text(
+                if (initial.productId == null) "Create product" else "Edit product",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            OutlinedTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Title") })
+            DropdownField(
+                label = "Category",
+                value = category,
+                expanded = categoryExpanded,
+                onExpandedChange = { categoryExpanded = it },
+                options = ProductCategories,
+                onSelected = { category = it; categoryExpanded = false },
+            )
+            DropdownField(
+                label = "Metal",
+                value = metal,
+                expanded = metalExpanded,
+                onExpandedChange = { metalExpanded = it },
+                options = listOf("gold", "silver"),
+                onSelected = { metal = it; metalExpanded = false },
+            )
+            OutlinedTextField(value = purity, onValueChange = { purity = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Purity") })
+            OutlinedTextField(
+                value = weight,
+                onValueChange = { weight = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Weight (grams)") },
+                supportingText = { Text("Use at least 3 decimal places, for example 3.441") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            )
+            DropdownField(
+                label = "Stock status",
+                value = stock,
+                expanded = stockExpanded,
+                onExpandedChange = { stockExpanded = it },
+                options = StockOptions,
+                onSelected = { stock = it; stockExpanded = false },
+            )
+            OutlinedTextField(value = tags, onValueChange = { tags = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Tags (comma separated)") })
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 4,
+                label = { Text("Description") },
+            )
+            Text("Images", fontWeight = FontWeight.SemiBold)
+            if (initial.existingImages.isNotEmpty()) {
+                HorizontalImageRow(urls = initial.existingImages)
+            }
+            if (selectedImages.isNotEmpty()) {
+                HorizontalImageRow(urls = selectedImages.map(Uri::toString))
+            }
+            OutlinedButton(onClick = { imagePicker.launch("image/*") }) {
+                Icon(Icons.Default.Image, contentDescription = null)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(if (selectedImages.isEmpty()) "Choose images" else "Replace images")
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    if (initial.productId == null) "Create product" else "Edit product",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                OutlinedTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Title") })
-                DropdownField(
-                    label = "Category",
-                    value = category,
-                    expanded = categoryExpanded,
-                    onExpandedChange = { categoryExpanded = it },
-                    options = ProductCategories,
-                    onSelected = { category = it; categoryExpanded = false },
-                )
-                DropdownField(
-                    label = "Metal",
-                    value = metal,
-                    expanded = metalExpanded,
-                    onExpandedChange = { metalExpanded = it },
-                    options = listOf("gold", "silver"),
-                    onSelected = { metal = it; metalExpanded = false },
-                )
-                OutlinedTextField(value = purity, onValueChange = { purity = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Purity") })
-                OutlinedTextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Weight (grams)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                )
-                DropdownField(
-                    label = "Stock status",
-                    value = stock,
-                    expanded = stockExpanded,
-                    onExpandedChange = { stockExpanded = it },
-                    options = StockOptions,
-                    onSelected = { stock = it; stockExpanded = false },
-                )
-                OutlinedTextField(value = tags, onValueChange = { tags = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Tags (comma separated)") })
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 4,
-                    label = { Text("Description") },
-                )
-                Text("Images", fontWeight = FontWeight.SemiBold)
-                if (initial.existingImages.isNotEmpty()) {
-                    HorizontalImageRow(urls = initial.existingImages)
-                }
-                if (selectedImages.isNotEmpty()) {
-                    HorizontalImageRow(urls = selectedImages.map(Uri::toString))
-                }
-                OutlinedButton(onClick = { imagePicker.launch("image/*") }) {
-                    Icon(Icons.Default.Image, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (selectedImages.isEmpty()) "Choose images" else "Replace images")
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (initial.productId != null) {
-                        FilledTonalButton(onClick = onDelete) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Delete")
-                        }
+                if (initial.productId != null) {
+                    FilledTonalButton(onClick = { confirmDelete = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Delete")
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = onDismiss) {
-                            Text("Cancel")
-                        }
-                        Button(
-                            onClick = {
-                                val parsedWeight = weight.toDoubleOrNull() ?: 0.0
-                                onSave(
-                                    ProductPayload(
-                                        title = title.trim(),
-                                        category = category.trim(),
-                                        metal = metal,
-                                        description = description.trim(),
-                                        purity = purity.trim(),
-                                        weight = parsedWeight,
-                                        images = initial.existingImages,
-                                        stockStatus = stock,
-                                        tags = tags.split(",").map { it.trim() }.filter { it.isNotBlank() },
-                                    ),
-                                    selectedImages.toList(),
-                                )
-                            },
-                            enabled = canSave,
-                        ) {
-                            Text(if (initial.productId == null) "Create" else "Save")
-                        }
+                } else {
+                    Spacer(modifier = Modifier.width(1.dp))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val parsedWeight = weight.toDoubleOrNull() ?: 0.0
+                            onSave(
+                                ProductPayload(
+                                    title = title.trim(),
+                                    category = category.trim(),
+                                    metal = metal,
+                                    description = description.trim(),
+                                    purity = purity.trim(),
+                                    weight = parsedWeight,
+                                    images = initial.existingImages,
+                                    stockStatus = stock,
+                                    tags = tags.split(",").map { it.trim() }.filter { it.isNotBlank() },
+                                ),
+                                selectedImages.toList(),
+                            )
+                        },
+                        enabled = canSave,
+                    ) {
+                        Text(if (initial.productId == null) "Create" else "Save")
                     }
                 }
             }
         }
+    }
+
+    if (confirmDelete && initial.productId != null) {
+        ConfirmDeleteDialog(
+            label = "product ${initial.productId}",
+            onDismiss = { confirmDelete = false },
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+        )
     }
 }
 
@@ -1664,9 +1657,17 @@ private fun OrderDetailSheet(
     onDismiss: () -> Unit,
     onUpdateStatus: (String) -> Unit,
     onAddComment: (String) -> Unit,
+    onOpenProduct: (OrderProductSnapshot) -> Unit,
     onDelete: () -> Unit,
 ) {
     var comment by rememberSaveable(order.orderRef) { mutableStateOf("") }
+    var draftStatus by rememberSaveable(order.orderRef) { mutableStateOf(order.status) }
+    var confirmDelete by rememberSaveable(order.orderRef) { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    LaunchedEffect(order.status) {
+        draftStatus = order.status
+    }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -1677,10 +1678,21 @@ private fun OrderDetailSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(order.orderRef, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            ChipRow(values = listOf(labelize(order.orderKind.replace("_", " ")), labelize(order.status)))
+            ChipRow(values = listOf(labelize(order.orderKind.replace("_", " ")), labelize(draftStatus)))
             Text("${order.customerName} • ${order.phone}")
             Text(formatDate(order.createdAt), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            OrderStatusSelector(current = order.status, onSelect = onUpdateStatus)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                IconButton(onClick = {
+                    val phone = normalizePhone(order.phone)
+                    if (phone.isNotBlank()) {
+                        val dialIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                        context.startActivity(dialIntent)
+                    }
+                }) {
+                    Icon(Icons.Default.Phone, contentDescription = "Call ${order.phone}")
+                }
+            }
+            OrderStatusSelector(current = draftStatus, onSelect = { draftStatus = it })
 
             if (order.orderKind == "custom_order") {
                 DetailLine("Jewelry type", order.jewelryType.orEmpty())
@@ -1694,7 +1706,7 @@ private fun OrderDetailSheet(
             } else {
                 Text("Products", fontWeight = FontWeight.SemiBold)
                 order.products.forEach {
-                    ProductSnapshotRow(it)
+                    ProductSnapshotRow(snapshot = it, onClick = { onOpenProduct(it) })
                 }
                 if (!order.notes.isNullOrBlank()) {
                     DetailLine("Notes", order.notes)
@@ -1724,11 +1736,18 @@ private fun OrderDetailSheet(
                 }, enabled = comment.isNotBlank()) {
                     Text("Add Comment")
                 }
-                FilledTonalButton(onClick = onDelete) {
+                FilledTonalButton(onClick = { confirmDelete = true }) {
                     Icon(Icons.Default.Delete, contentDescription = null)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Delete")
                 }
+            }
+            Button(
+                onClick = { onUpdateStatus(draftStatus) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = draftStatus != order.status,
+            ) {
+                Text("Save Status")
             }
             currentUser?.let {
                 Text(
@@ -1739,6 +1758,17 @@ private fun OrderDetailSheet(
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
+    }
+
+    if (confirmDelete) {
+        ConfirmDeleteDialog(
+            label = "order ${order.orderRef}",
+            onDismiss = { confirmDelete = false },
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+        )
     }
 }
 
@@ -1763,9 +1793,17 @@ private fun OrderStatusSelector(
 }
 
 @Composable
-private fun ProductSnapshotRow(snapshot: OrderProductSnapshot) {
+private fun ProductSnapshotRow(
+    snapshot: OrderProductSnapshot,
+    onClick: () -> Unit,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f))
+            .padding(10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -1914,8 +1952,9 @@ private fun ProfileDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BugReportDialog(
+private fun BugReportSheet(
     onDismiss: () -> Unit,
     onSubmit: (String, String, String, Uri?) -> Unit,
 ) {
@@ -1928,58 +1967,66 @@ private fun BugReportDialog(
         imageUri = uri
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = { onSubmit(title, severity, description, imageUri) },
-                enabled = title.length >= 3 && description.length >= 10,
-            ) { Text("Submit") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        title = { Text("Report bug") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Bug title") },
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .heightIn(max = 680.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Report bug", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Bug title") },
+            )
+            DropdownField(
+                label = "Severity",
+                value = severity,
+                expanded = severityExpanded,
+                onExpandedChange = { severityExpanded = it },
+                options = SeverityOptions,
+                onSelected = { severity = it; severityExpanded = false },
+            )
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 4,
+                label = { Text("Description") },
+            )
+            if (imageUri != null) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop,
                 )
-                DropdownField(
-                    label = "Severity",
-                    value = severity,
-                    expanded = severityExpanded,
-                    onExpandedChange = { severityExpanded = it },
-                    options = SeverityOptions,
-                    onSelected = { severity = it; severityExpanded = false },
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 4,
-                    label = { Text("Description") },
-                )
-                if (imageUri != null) {
-                    AsyncImage(
-                        model = imageUri,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop,
-                    )
-                }
-                OutlinedButton(onClick = { imagePicker.launch("image/*") }) {
-                    Icon(Icons.Default.Image, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (imageUri == null) "Attach screenshot" else "Replace screenshot")
-                }
             }
-        },
-    )
+            OutlinedButton(onClick = { imagePicker.launch("image/*") }) {
+                Icon(Icons.Default.Image, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (imageUri == null) "Attach screenshot" else "Replace screenshot")
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { onSubmit(title, severity, description, imageUri) },
+                    enabled = title.length >= 3 && description.length >= 10,
+                ) { Text("Submit") }
+            }
+        }
+    }
 }
 
 @Composable
@@ -2046,6 +2093,87 @@ private fun AccountLine(icon: androidx.compose.ui.graphics.vector.ImageVector, l
     }
 }
 
+@Composable
+private fun SheetActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    enabled: Boolean = true,
+    primary: Boolean = false,
+    onClick: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (primary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+    ) {
+        IconButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = Modifier.size(48.dp),
+        ) {
+            Icon(
+                icon,
+                contentDescription = contentDescription,
+                tint = if (primary) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConfirmDeleteDialog(
+    label: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        title = { Text("Confirm delete") },
+        text = { Text("Delete $label? This cannot be undone.") },
+    )
+}
+
+@Composable
+private fun ProductPreviewDialog(
+    snapshot: OrderProductSnapshot,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        },
+        title = { Text(snapshot.title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                AsyncImage(
+                    model = snapshot.image,
+                    contentDescription = snapshot.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+                DetailLine("Product ID", snapshot.productId)
+                DetailLine("Quantity", snapshot.quantity.toString())
+                snapshot.price?.let { DetailLine("Price", it.toString()) }
+            }
+        },
+    )
+}
+
 private fun destinationIcon(destination: RootDestination) = when (destination) {
     RootDestination.Products -> Icons.Default.Inventory2
     RootDestination.Orders -> Icons.AutoMirrored.Filled.ListAlt
@@ -2062,6 +2190,10 @@ private fun labelize(value: String): String {
         .joinToString(" ") { word ->
             word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         }
+}
+
+private fun normalizePhone(value: String): String {
+    return value.filter { it.isDigit() || it == '+' }
 }
 
 private fun formatDate(value: String): String {
@@ -2099,7 +2231,7 @@ private data class ProductEditorState(
                 category = product.category,
                 metal = product.metal,
                 purity = product.purity,
-                weight = product.weight.toString(),
+                weight = String.format(Locale.US, "%.3f", product.weight),
                 stockStatus = product.stockStatus,
                 tags = product.tags.joinToString(", "),
                 description = product.description,

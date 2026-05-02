@@ -1,7 +1,6 @@
 import asyncio
 import csv
 import io
-import secrets
 from typing import Any
 from urllib.parse import quote
 
@@ -24,6 +23,7 @@ from services.dashboard_service import invalidate_dashboard_cache
 from services.email_service import notify_super_admins
 
 logger = get_logger(__name__)
+MONTH_CODES = ("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
 
 
 def _schedule_notification(subject: str, body: str):
@@ -38,8 +38,42 @@ def _schedule_notification(subject: str, body: str):
     task.add_done_callback(_log_failure)
 
 
-def generate_inquiry_id(prefix: str) -> str:
-    return f"{prefix}{utc_now().strftime('%Y%m%d%H%M%S')}{secrets.randbelow(900) + 100}"
+def _build_order_reference_prefix() -> str:
+    now = utc_now()
+    return f"{now.strftime('%y')}{MONTH_CODES[now.month - 1]}"
+
+
+async def generate_inquiry_id() -> str:
+    prefix = _build_order_reference_prefix()
+    pattern = {"$regex": f"^{prefix}\\d{{2}}$"}
+
+    catalog_orders = await get_order_collection().find(
+        {"inquiry_id": pattern},
+        {"inquiry_id": 1},
+    ).to_list(length=100)
+    custom_orders = await get_custom_request_collection().find(
+        {"request_id": pattern},
+        {"request_id": 1},
+    ).to_list(length=100)
+
+    used_references = {
+        str(document.get("inquiry_id") or "").strip()
+        for document in catalog_orders
+    }
+    used_references.update(
+        str(document.get("request_id") or "").strip()
+        for document in custom_orders
+    )
+
+    for suffix in range(100):
+        reference = f"{prefix}{suffix:02d}"
+        if reference not in used_references:
+            return reference
+
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="Daily order ID limit reached. Please contact support.",
+    )
 
 
 def serialize_order_comment(comment: dict[str, Any], admin_name_lookup: dict[str, str] | None = None) -> OrderComment:
@@ -193,7 +227,7 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
             }
         )
 
-    inquiry_id = generate_inquiry_id("INQ")
+    inquiry_id = await generate_inquiry_id()
     now = utc_now()
     customer_name = payload.customer_name or "Not provided"
     phone = payload.phone or "Not provided"
@@ -236,7 +270,7 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
 
 
 async def create_custom_request(payload: CustomRequestCreate) -> CustomRequestResponse:
-    request_id = generate_inquiry_id("CUS")
+    request_id = await generate_inquiry_id()
     now = utc_now()
     document = payload.model_dump()
     customer_name = payload.customer_name or "Not provided"

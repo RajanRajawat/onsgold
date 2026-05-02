@@ -72,6 +72,8 @@ let activityCurrentPage = 1;
 const ACTIVITY_PAGE_SIZE = 25;
 let activeOrderModalRef = null;
 let activeOrderModalKind = null;
+let activeOrderDraftStatus = null;
+let activeOrderInitialStatus = null;
 let activeActivityLogId = null;
 let editingAdminEmail = null;
 let activeAdminModalEmail = null;
@@ -289,6 +291,22 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function normalizePhoneForCall(phone) {
+  return String(phone || "").replace(/[^\d+]/g, "");
+}
+
+function buildCallLink(phone) {
+  const normalized = normalizePhoneForCall(phone);
+  if (!normalized) return "";
+  return `
+    <a class="order-call-link" href="tel:${escapeHtml(normalized)}" aria-label="Call ${escapeHtml(phone)}" title="Call ${escapeHtml(phone)}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.62a2 2 0 0 1-.45 2.11L8 9.77a16 16 0 0 0 6.23 6.23l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.51 2.62.63A2 2 0 0 1 22 16.92z"></path>
+      </svg>
+    </a>
+  `;
+}
+
 function readPositiveNumberInput(id, label) {
   const input = document.getElementById(id);
   const value = Number(input?.value);
@@ -479,10 +497,10 @@ function renderOrderDetails(order) {
     `;
   }
   const productLines = (order.products || []).map(product => `
-    <div class="order-detail-line">
-      <strong>${product.title}</strong>
-      <span>${product.product_id}${product.quantity > 1 ? ` x${product.quantity}` : ""}</span>
-    </div>
+    <button class="order-product-trigger" type="button" data-order-product="${escapeHtml(product.product_id)}">
+      <strong>${escapeHtml(product.title)}</strong>
+      <span>${escapeHtml(product.product_id)}${product.quantity > 1 ? ` x${product.quantity}` : ""}</span>
+    </button>
   `).join("");
   const notes = order.notes ? `<div class="order-detail-note">Note: ${truncateText(order.notes, 120)}</div>` : "";
   return `<div class="order-details">${productLines}${notes}</div>`;
@@ -595,17 +613,34 @@ function openOrderDetailModal(orderRef, orderKind) {
   if (!order || !modal) return;
   activeOrderModalRef = orderRef;
   activeOrderModalKind = orderKind;
+  activeOrderDraftStatus = order.status;
+  activeOrderInitialStatus = order.status;
   document.getElementById("order-modal-title").textContent = `${orderKind === "custom_order" ? "Custom Order" : "Catalog Order"} Details`;
   document.getElementById("order-modal-id").textContent = order.order_ref;
   document.getElementById("order-modal-type").innerHTML = orderTypeBadge(order.order_kind);
-  document.getElementById("order-modal-customer").innerHTML = `${order.customer_name}<br><span style="font-size:12px;color:var(--muted);">${order.phone}</span>`;
+  document.getElementById("order-modal-customer").innerHTML = `
+    ${escapeHtml(order.customer_name)}<br>
+    <span style="font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:8px;">
+      <span>${escapeHtml(order.phone)}</span>
+      ${buildCallLink(order.phone)}
+    </span>
+  `;
   document.getElementById("order-modal-created").textContent = formatDateTime(order.created_at);
   const statusSelect = document.getElementById("order-modal-status");
   statusSelect.innerHTML = ["new", "contacted", "quoted", "closed"]
-    .map(status => `<option value="${status}" ${order.status === status ? "selected" : ""}>${stockLabel(status)}</option>`)
+    .map(status => `<option value="${status}" ${activeOrderDraftStatus === status ? "selected" : ""}>${stockLabel(status)}</option>`)
     .join("");
-  statusSelect.onchange = () => updateAdminOrderStatus(activeOrderModalKind, activeOrderModalRef, statusSelect.value);
+  statusSelect.onchange = () => {
+    activeOrderDraftStatus = statusSelect.value;
+    const activeOrder = allAdminOrders.find(item => item.order_ref === activeOrderModalRef && item.order_kind === activeOrderModalKind);
+    if (activeOrder) activeOrder.status = activeOrderDraftStatus;
+    renderOrders(getFilteredOrders());
+    updateOrderSaveButton();
+  };
   document.getElementById("order-modal-details").innerHTML = renderOrderDetails(order);
+  document.querySelectorAll("[data-order-product]").forEach(button => {
+    button.addEventListener("click", () => openProductDetailModal(button.dataset.orderProduct));
+  });
   const imageWrap = document.getElementById("order-modal-images-wrap");
   const imageContainer = document.getElementById("order-modal-images");
   const imageGallery = renderOrderImageGallery(order);
@@ -621,15 +656,28 @@ function openOrderDetailModal(orderRef, orderKind) {
   document.getElementById("order-comment-text").value = "";
   clearMsg(document.getElementById("order-comment-msg"));
   renderOrderCommentList(order);
+  updateOrderSaveButton();
   modal.classList.add("open");
 }
 
 function closeOrderDetailModal() {
+  const shouldRestoreServerState = activeOrderDraftStatus && activeOrderInitialStatus && activeOrderDraftStatus !== activeOrderInitialStatus;
   activeOrderModalRef = null;
   activeOrderModalKind = null;
+  activeOrderDraftStatus = null;
+  activeOrderInitialStatus = null;
   document.getElementById("order-comment-text").value = "";
   clearMsg(document.getElementById("order-comment-msg"));
   document.getElementById("order-detail-modal")?.classList.remove("open");
+  if (shouldRestoreServerState) {
+    loadOrdersData().catch(() => {});
+  }
+}
+
+function updateOrderSaveButton() {
+  const button = document.getElementById("order-save-status-btn");
+  if (!button) return;
+  button.disabled = !activeOrderDraftStatus || activeOrderDraftStatus === activeOrderInitialStatus;
 }
 
 function roleTag(role) {
@@ -863,24 +911,21 @@ async function loadActivityLogsData() {
 function renderProducts(list) {
   const tbody = document.getElementById("products-table-body");
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">No products found.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">No products found.</div></td></tr>`;
     updateProductsPagination(productTotalItems);
     return;
   }
   tbody.innerHTML = list.map(product => `
-    <tr>
+    <tr class="products-table-row" data-product-open="${product.product_id}">
       <td>${product.title}<br><small>${product.product_id}</small></td>
       <td>${product.category}</td>
       <td>${stockLabel(product.metal)}</td>
       <td>${product.purity}</td>
       <td>${formatWeightDisplay(product.weight)} g</td>
       <td>${stockLabel(product.stock_status)}</td>
-      <td>
-        <button class="btn-sm btn-outline" data-edit="${product.product_id}">Edit</button>
-      </td>
     </tr>
   `).join("");
-  tbody.querySelectorAll("[data-edit]").forEach(btn => btn.addEventListener("click", () => openProductDetailModal(btn.dataset.edit)));
+  tbody.querySelectorAll("[data-product-open]").forEach(row => row.addEventListener("click", () => openProductDetailModal(row.dataset.productOpen)));
 }
 
 function renderOrders(list) {
@@ -981,12 +1026,6 @@ function toggleAdminManagementVisibility() {
   }
 }
 
-function resetProductForm() {
-  document.getElementById("product-form").reset();
-  document.getElementById("product-form-title").textContent = "Create Product";
-  clearMsg(document.getElementById("product-form-msg"));
-}
-
 function renderProductImageCards(containerId, images, emptyLabel = "No images available.") {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1004,25 +1043,30 @@ function renderProductImageCards(containerId, images, emptyLabel = "No images av
   `).join("");
 }
 
-function openProductDetailModal(productId) {
-  const product = allProducts.find(item => item.product_id === productId);
+function openProductDetailModal(productId = null) {
+  const product = productId ? allProducts.find(item => item.product_id === productId) : null;
   const modal = document.getElementById("product-detail-modal");
-  if (!product || !modal) return;
-  activeProductModalId = product.product_id;
-  document.getElementById("pdm-title").textContent = `Edit ${product.title}`;
-  document.getElementById("pdm-product-id").textContent = product.product_id;
-  document.getElementById("pdm-product-title").value = product.title;
+  if ((productId && !product) || !modal) return;
+  activeProductModalId = product?.product_id || null;
+  document.getElementById("pdm-title").textContent = product ? `Edit ${product.title}` : "Add Product";
+  document.getElementById("pdm-copy").textContent = product
+    ? "Update product details, replace images, or remove the product from this slider."
+    : "Add a new product from the same bottom slider used for edits.";
+  document.getElementById("pdm-product-id").textContent = product?.product_id || "New Product";
+  document.getElementById("pdm-product-title").value = product?.title || "";
   const categorySelect = document.getElementById("pdm-product-category");
-  ensureSelectHasOption(categorySelect, product.category);
-  categorySelect.value = product.category;
-  document.getElementById("pdm-product-metal").value = product.metal || "gold";
-  document.getElementById("pdm-product-purity").value = product.purity;
-  document.getElementById("pdm-product-weight").value = formatWeightInputValue(product.weight);
-  document.getElementById("pdm-product-stock").value = product.stock_status;
-  document.getElementById("pdm-product-tags").value = (product.tags || []).join(", ");
-  document.getElementById("pdm-product-description").value = product.description;
+  if (product?.category) ensureSelectHasOption(categorySelect, product.category);
+  categorySelect.value = product?.category || "";
+  document.getElementById("pdm-product-metal").value = product?.metal || "gold";
+  document.getElementById("pdm-product-purity").value = product?.purity || "";
+  document.getElementById("pdm-product-weight").value = formatWeightInputValue(product?.weight);
+  document.getElementById("pdm-product-stock").value = product?.stock_status || "in_stock";
+  document.getElementById("pdm-product-tags").value = product ? (product.tags || []).join(", ") : "";
+  document.getElementById("pdm-product-description").value = product?.description || "";
   document.getElementById("pdm-product-images").value = "";
-  renderProductImageCards("pdm-current-images", product.images || []);
+  document.getElementById("pdm-current-images-wrap").style.display = product ? "block" : "none";
+  document.getElementById("pdm-delete-btn").style.display = product ? "inline-flex" : "none";
+  renderProductImageCards("pdm-current-images", product?.images || []);
   renderProductImageCards("pdm-new-images", [], "No new images selected.");
   clearMsg(document.getElementById("pdm-msg"));
   modal.classList.add("open");
@@ -1098,54 +1142,12 @@ async function uploadImages(files) {
   return data.urls || [];
 }
 
-async function saveProduct(event) {
-  event.preventDefault();
-  const msg = document.getElementById("product-form-msg");
-  const btn = document.querySelector('#product-form button[type="submit"]');
-  clearMsg(msg);
-  const stopLoading = setButtonLoading(btn, "Saving Product...");
-  try {
-    const imageFiles = document.getElementById("product-images").files;
-    const uploadedImages = imageFiles.length ? await uploadImages(imageFiles) : [];
-    const payload = {
-      title: document.getElementById("product-title").value.trim(),
-      category: document.getElementById("product-category").value,
-      metal: document.getElementById("product-metal").value,
-      purity: document.getElementById("product-purity").value.trim(),
-      weight: readPositiveNumberInput("product-weight", "Weight"),
-      price: null,
-      price_on_request: false,
-      stock_status: document.getElementById("product-stock").value,
-      tags: document.getElementById("product-tags").value.split(",").map(item => item.trim()).filter(Boolean),
-      description: document.getElementById("product-description").value.trim(),
-      images: uploadedImages,
-    };
-    if (!payload.images.length) throw new Error("Upload at least one product image.");
-    await api("/products", "POST", payload);
-    showMsg(msg, "Product created successfully.", "success");
-    showToast("Product created successfully.", "success");
-    resetProductForm();
-    productCurrentPage = 1;
-    await Promise.all([
-      loadOrdersData(),
-      loadProductsSection(1),
-      refreshActivityLogsIfLoaded(),
-    ]);
-  } catch (error) {
-    showMsg(msg, error.message, "error");
-    showToast(error.message, "error");
-  } finally {
-    stopLoading();
-  }
-}
-
 async function saveProductFromModal(event) {
   event.preventDefault();
-  if (!activeProductModalId) return;
   const msg = document.getElementById("pdm-msg");
   const btn = document.getElementById("pdm-save-btn");
   clearMsg(msg);
-  const stopLoading = setButtonLoading(btn, "Saving Changes...");
+  const stopLoading = setButtonLoading(btn, activeProductModalId ? "Saving..." : "Creating...");
   try {
     const imageFiles = document.getElementById("pdm-product-images").files;
     const uploadedImages = imageFiles.length ? await uploadImages(imageFiles) : [];
@@ -1164,8 +1166,14 @@ async function saveProductFromModal(event) {
       images: uploadedImages.length ? uploadedImages : (currentProduct?.images || []),
     };
     if (!payload.images.length) throw new Error("Upload at least one product image.");
-    await api(`/products/${activeProductModalId}`, "PUT", payload);
-    showToast("Product updated.", "success");
+    if (activeProductModalId) {
+      await api(`/products/${activeProductModalId}`, "PUT", payload);
+      showToast("Product updated.", "success");
+    } else {
+      await api("/products", "POST", payload);
+      showToast("Product created successfully.", "success");
+      productCurrentPage = 1;
+    }
     closeProductDetailModal();
     await Promise.all([
       loadOrdersData(),
@@ -1566,12 +1574,26 @@ async function updateAdminOrderStatus(orderKind, orderId, status) {
       : `/admin/orders/${orderId}/status`;
     await api(route, "PATCH", { status });
     showToast("Order status updated.", "success");
+    activeOrderInitialStatus = status;
     await Promise.all([
       loadOrdersData(),
       refreshActivityLogsIfLoaded(),
     ]);
   } catch (error) {
     showToast(error.message, "error");
+    await loadOrdersData().catch(() => {});
+  }
+}
+
+async function saveActiveOrderStatus() {
+  if (!activeOrderModalRef || !activeOrderModalKind || !activeOrderDraftStatus) return;
+  const button = document.getElementById("order-save-status-btn");
+  const stopLoading = setButtonLoading(button, "Saving...");
+  try {
+    await updateAdminOrderStatus(activeOrderModalKind, activeOrderModalRef, activeOrderDraftStatus);
+  } finally {
+    stopLoading();
+    updateOrderSaveButton();
   }
 }
 
@@ -1596,6 +1618,12 @@ async function deleteOrderFromTable(orderRef, orderKind, button) {
   } finally {
     stopLoading(orderDeleteIcon());
   }
+}
+
+function deleteActiveOrder() {
+  const button = document.getElementById("order-delete-btn");
+  if (!activeOrderModalRef || !activeOrderModalKind || !button) return;
+  deleteOrderFromTable(activeOrderModalRef, activeOrderModalKind, button);
 }
 
 async function addOrderCommentFromModal() {
@@ -1642,6 +1670,19 @@ async function refreshOrdersData() {
   try {
     await Promise.all([
       loadOrdersData(),
+      refreshActivityLogsIfLoaded(),
+    ]);
+  } finally {
+    stopLoading();
+  }
+}
+
+async function refreshProductsData() {
+  const btn = document.getElementById("products-refresh-btn");
+  const stopLoading = setButtonLoading(btn, "...");
+  try {
+    await Promise.all([
+      loadProductsSection(productCurrentPage),
       refreshActivityLogsIfLoaded(),
     ]);
   } finally {
@@ -1880,14 +1921,16 @@ document.getElementById("forgot-back2-btn").addEventListener("click", () => {
 });
 document.getElementById("fp-send-btn").addEventListener("click", sendForgotOtp);
 document.getElementById("fp-reset-btn").addEventListener("click", resetForgotPassword);
-document.getElementById("report-bug-btn").addEventListener("click", openBugModal);
+["report-bug-btn", "sidebar-report-bug-btn"].forEach(id => {
+  const button = document.getElementById(id);
+  if (button) button.addEventListener("click", openBugModal);
+});
 document.getElementById("bug-modal-close").addEventListener("click", closeBugModal);
 document.getElementById("bug-report-modal").addEventListener("click", event => {
   if (event.target.id === "bug-report-modal") closeBugModal();
 });
 document.getElementById("bug-image-input").addEventListener("change", handleBugImageChange);
 document.getElementById("bug-submit-btn").addEventListener("click", submitBugReport);
-document.getElementById("product-form").addEventListener("submit", saveProduct);
 document.getElementById("product-detail-form").addEventListener("submit", saveProductFromModal);
 document.getElementById("product-detail-close").addEventListener("click", closeProductDetailModal);
 document.getElementById("product-detail-modal").addEventListener("click", event => {
@@ -1898,6 +1941,8 @@ document.getElementById("order-detail-modal").addEventListener("click", event =>
   if (event.target.id === "order-detail-modal") closeOrderDetailModal();
 });
 document.getElementById("order-add-comment-btn").addEventListener("click", addOrderCommentFromModal);
+document.getElementById("order-save-status-btn").addEventListener("click", saveActiveOrderStatus);
+document.getElementById("order-delete-btn").addEventListener("click", deleteActiveOrder);
 document.getElementById("activity-detail-close").addEventListener("click", closeActivityLogModal);
 document.getElementById("activity-detail-modal").addEventListener("click", event => {
   if (event.target.id === "activity-detail-modal") closeActivityLogModal();
@@ -1919,6 +1964,8 @@ document.getElementById("profile-modal").addEventListener("click", event => {
 document.getElementById("pm-name-btn").addEventListener("click", submitProfileName);
 document.getElementById("pm-pwd-btn").addEventListener("click", submitProfilePassword);
 document.getElementById("pm-email-btn").addEventListener("click", submitProfileEmail);
+document.getElementById("products-add-btn").addEventListener("click", () => openProductDetailModal());
+document.getElementById("products-refresh-btn").addEventListener("click", refreshProductsData);
 document.getElementById("products-search").addEventListener("input", filterProducts);
 document.getElementById("products-prev-btn").addEventListener("click", () => {
   if (productCurrentPage <= 1) return;
