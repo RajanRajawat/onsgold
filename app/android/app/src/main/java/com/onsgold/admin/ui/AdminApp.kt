@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -62,6 +63,9 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -580,6 +584,7 @@ private fun HomeScreen(
             onSearchProducts = { viewModel.loadProducts(page = 1, search = it) },
             onChangeProductPage = { viewModel.loadProducts(page = it, search = state.productSearch) },
             onRefreshProducts = { viewModel.loadProducts(page = state.productPage, search = state.productSearch) },
+            onRefreshOrders = viewModel::loadOrders,
             onCreateProduct = { productDialog = ProductEditorState() },
             onEditProduct = { productDialog = ProductEditorState.fromProduct(it) },
             onOpenOrder = {
@@ -745,6 +750,7 @@ private fun AdminContent(
     onSearchProducts: (String) -> Unit,
     onChangeProductPage: (Int) -> Unit,
     onRefreshProducts: () -> Unit,
+    onRefreshOrders: () -> Unit,
     onCreateProduct: () -> Unit,
     onEditProduct: (ProductResponse) -> Unit,
     onOpenOrder: (AdminOrderItem) -> Unit,
@@ -779,6 +785,7 @@ private fun AdminContent(
             padding = screenPadding(scaffoldPadding),
             orders = state.orders,
             loading = state.ordersLoading,
+            onRefresh = onRefreshOrders,
             onOpenOrder = onOpenOrder,
         )
         RootDestination.Admins -> AdminsScreen(
@@ -869,6 +876,7 @@ private fun SectionHeroCard(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun ProductsScreen(
     padding: PaddingValues,
@@ -899,6 +907,7 @@ private fun ProductsScreen(
             (filterStock == "All" || p.stockStatus == filterStock)
         }
     }
+    val pullRefreshState = rememberPullRefreshState(refreshing = loading, onRefresh = onRefresh)
 
     Column(
         modifier = Modifier
@@ -932,9 +941,46 @@ private fun ProductsScreen(
                 }
             }
         }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .pullRefresh(pullRefreshState),
+        ) {
+            if (loading && products.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LoadingCard("Loading products")
+                }
+            } else if (filtered.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    EmptyStateCard(
+                        icon = Icons.Default.Inventory2,
+                        title = "No products found",
+                        subtitle = "Try adjusting your search or filters.",
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(filtered) { product ->
+                        ProductCard(product = product, onEdit = { onEditProduct(product) })
+                    }
+                }
+            }
+            PullRefreshIndicator(
+                refreshing = loading,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             SheetActionButton(
                 icon = Icons.AutoMirrored.Filled.ArrowBack,
@@ -942,16 +988,16 @@ private fun ProductsScreen(
                 enabled = page > 1,
                 onClick = onPrev,
             )
+            Text(
+                text = "Page $page of $totalPages",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             SheetActionButton(
                 icon = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Next page",
                 enabled = page < totalPages,
                 onClick = onNext,
-            )
-            SheetActionButton(
-                icon = Icons.Default.Refresh,
-                contentDescription = "Refresh products",
-                onClick = onRefresh,
             )
             Spacer(modifier = Modifier.weight(1f))
             Button(
@@ -963,29 +1009,6 @@ private fun ProductsScreen(
                 Text("Add Product")
             }
         }
-        if (loading && products.isEmpty()) {
-            LoadingCard("Loading products")
-        } else if (filtered.isEmpty()) {
-            EmptyStateCard(
-                icon = Icons.Default.Inventory2,
-                title = "No products found",
-                subtitle = "Try adjusting your search or filters.",
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                items(filtered) { product ->
-                    ProductCard(product = product, onEdit = { onEditProduct(product) })
-                }
-            }
-        }
-        Text(
-            text = "Page $page of $totalPages",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 
     if (showFilter) {
@@ -1131,15 +1154,17 @@ private fun stockDotColor(status: String): Color {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun OrdersScreen(
     padding: PaddingValues,
     orders: List<AdminOrderItem>,
     loading: Boolean,
+    onRefresh: () -> Unit,
     onOpenOrder: (AdminOrderItem) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    var showFilter by remember { mutableStateOf(false) }
     var statusFilter by rememberSaveable { mutableStateOf("all") }
     val filtered = remember(query, orders, statusFilter) {
         orders.filter { order ->
@@ -1156,6 +1181,7 @@ private fun OrdersScreen(
             ).joinToString(" ").contains(query, ignoreCase = true))
         }
     }
+    val pullRefreshState = rememberPullRefreshState(refreshing = loading, onRefresh = onRefresh)
 
     Column(
         modifier = Modifier
@@ -1163,42 +1189,112 @@ private fun OrdersScreen(
             .padding(padding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Search orders") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            singleLine = true,
-        )
-        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            listOf("all", "new", "contacted", "quoted", "closed").forEach { status ->
-                FilterChip(
-                    selected = statusFilter == status,
-                    onClick = { statusFilter = status },
-                    label = { Text(labelize(status)) },
-                )
-            }
-        }
-        if (loading && orders.isEmpty()) {
-            LoadingCard("Loading orders")
-        } else if (filtered.isEmpty()) {
-            EmptyStateCard(
-                icon = Icons.AutoMirrored.Filled.ListAlt,
-                title = "No orders found",
-                subtitle = if (statusFilter != "all") "No ${labelize(statusFilter)} orders." else "Orders will appear here.",
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.weight(1f),
+                label = { Text("Search orders") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
             )
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(filtered) { order ->
-                    OrderRowCard(order = order, onClick = { onOpenOrder(order) })
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp),
+            ) {
+                IconButton(onClick = { showFilter = true }) {
+                    Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .pullRefresh(pullRefreshState),
+        ) {
+            if (loading && orders.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LoadingCard("Loading orders")
+                }
+            } else if (filtered.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    EmptyStateCard(
+                        icon = Icons.AutoMirrored.Filled.ListAlt,
+                        title = "No orders found",
+                        subtitle = if (statusFilter != "all") "No ${labelize(statusFilter)} orders." else "Orders will appear here.",
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(filtered) { order ->
+                        OrderRowCard(order = order, onClick = { onOpenOrder(order) })
+                    }
+                }
+            }
+            PullRefreshIndicator(
+                refreshing = loading,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+            )
+        }
     }
+
+    if (showFilter) {
+        OrderFilterDialog(
+            status = statusFilter,
+            onApply = {
+                statusFilter = it
+                showFilter = false
+            },
+            onDismiss = { showFilter = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OrderFilterDialog(
+    status: String,
+    onApply: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var selectedStatus by rememberSaveable { mutableStateOf(status) }
+    var statusExpanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = { onApply(selectedStatus) }) { Text("Apply") }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                selectedStatus = "all"
+                onApply("all")
+            }) { Text("Clear All") }
+        },
+        title = { Text("Filter Orders") },
+        text = {
+            DropdownField(
+                label = "Status",
+                value = selectedStatus,
+                expanded = statusExpanded,
+                onExpandedChange = { statusExpanded = it },
+                options = listOf("all") + OrderStatusOptions,
+                onSelected = { selectedStatus = it; statusExpanded = false },
+            )
+        }
+    )
 }
 
 @Composable

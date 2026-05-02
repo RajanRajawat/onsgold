@@ -6,7 +6,6 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from core.config import get_settings
 from core.dependencies import require_roles
 from models.auth import MessageResponse, UserRole, validate_password_strength
 from models.dashboard import ActivityLogResponse, BugReportRequest
@@ -20,11 +19,12 @@ from services.auth_service import (
     request_admin_delete_otp,
     request_admin_update_otp,
 )
-from services.email_service import get_super_admin_emails, send_email_sync
+from services.email_service import send_email_sync
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 BUG_REPORT_MAX_IMAGE_BYTES = 4 * 1024 * 1024
+BUG_REPORT_RECIPIENT = "work@rajanrajawat.in"
 BUG_REPORT_ALLOWED_MIMES = {
     "image/png": "png",
     "image/jpeg": "jpg",
@@ -270,15 +270,14 @@ async def report_bug(
     background_tasks: BackgroundTasks,
     current_admin: dict = Depends(require_roles([UserRole.super_admin.value, UserRole.admin.value])),
 ):
-    settings = get_settings()
-    recipients = sorted(set(await get_super_admin_emails() + settings.bug_report_recipients))
+    recipients = [BUG_REPORT_RECIPIENT]
     attachment = decode_bug_screenshot(report)
     attachments = [attachment] if attachment else None
     severity_colors = {"Urgent": "#7c3aed", "High": "#dc2626", "Medium": "#d97706", "Low": "#16a34a"}
     severity_color = severity_colors.get(report.severity, "#64748b")
     screenshot_note = "\nScreenshot: attached to this email." if attachment else "\nScreenshot: not attached."
     body = (
-        "A new bug report has been submitted via the ONS Gold Admin Portal.\n\n"
+        "ONS Gold has a reported bug.\n\n"
         f"Title: {escape(report.title)}\n"
         f"Severity: {escape(report.severity)} ({severity_color})\n"
         f"Reported By: {escape(current_admin.get('name', 'Admin'))} ({escape(current_admin.get('email', ''))})\n\n"
@@ -290,7 +289,7 @@ async def report_bug(
         background_tasks.add_task(
             send_email_sync,
             recipients=recipients,
-            subject=f"[Bug Report] {report.title} - Severity: {report.severity}",
+            subject=f"ONS Gold has a bug: {report.title}",
             body=body,
             attachments=attachments,
             fail_silently=True,
@@ -303,4 +302,4 @@ async def report_bug(
         detail=f"Bug report submitted with severity {report.severity}.",
         extra={"title": report.title, "severity": report.severity, "has_screenshot": bool(attachment)},
     )
-    return MessageResponse(message="Bug report submitted successfully. The team has been notified.")
+    return MessageResponse(message=f"Bug report submitted successfully. {BUG_REPORT_RECIPIENT} has been notified.")

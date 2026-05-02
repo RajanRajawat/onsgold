@@ -1834,7 +1834,7 @@ async function submitBugReport() {
   const stopLoading = setButtonLoading(btn, "Submitting...");
   try {
     await api("/admin/report-bug", "POST", payload);
-    showMsg(msg, "Bug report submitted. The team has been notified.", "success");
+    showMsg(msg, "Bug report submitted. work@rajanrajawat.in has been notified.", "success");
     showToast("Bug report sent.", "success");
     setTimeout(closeBugModal, 1200);
   } catch (error) {

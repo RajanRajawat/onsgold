@@ -18,6 +18,8 @@ private val LightColors = lightColorScheme(
     onBackground = GoldOnBackground,
     surface = GoldSurface,
     onSurface = GoldOnSurface,
+    surfaceVariant = GoldSurfaceVariant,
+    onSurfaceVariant = GoldOnSurfaceVariant,
     error = GoldError,
     onError = GoldOnError,
 )
@@ -31,6 +33,8 @@ private val DarkColors = darkColorScheme(
     onBackground = GoldOnBackgroundDark,
     surface = GoldSurfaceDark,
     onSurface = GoldOnSurfaceDark,
+    surfaceVariant = GoldSurfaceVariantDark,
+    onSurfaceVariant = GoldOnSurfaceVariantDark,
     error = GoldErrorDark,
     onError = GoldOnErrorDark,
 )
