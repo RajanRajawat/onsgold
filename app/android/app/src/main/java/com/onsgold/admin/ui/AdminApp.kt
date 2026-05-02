@@ -4,8 +4,14 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,10 +45,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
@@ -55,6 +65,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -73,6 +84,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -90,12 +102,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -104,8 +118,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.onsgold.admin.data.ActivityLogResponse
@@ -117,11 +133,14 @@ import com.onsgold.admin.data.ProductPayload
 import com.onsgold.admin.data.ProductResponse
 import com.onsgold.admin.data.UserResponse
 import com.onsgold.admin.R
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
 import java.util.Locale
 
 private val ProductCategories = listOf(
@@ -142,13 +161,41 @@ private enum class RootDestination(val title: String) {
     Account("My Account"),
 }
 
+// Notification banner colors
+private val BannerGreen = Color(0xFF22C55E)
+private val BannerRed = Color(0xFFEF4444)
+private val NavBarBlue = Color(0xFF1A56DB)
+
+// Status pill colors
+private val StatusNew = Color(0xFF9CA3AF)
+private val StatusContacted = Color(0xFF3B82F6)
+private val StatusQuoted = Color(0xFFF59E0B)
+private val StatusClosed = Color(0xFF22C55E)
+
+// Stock dot colors
+private val StockInColor = Color(0xFF22C55E)
+private val StockLowColor = Color(0xFFF59E0B)
+private val StockOutColor = Color(0xFFEF4444)
+private val StockMadeColor = Color(0xFF3B82F6)
+
+// Role badge colors
+private val RoleSuperAdmin = Color(0xFF1E3A8A)
+private val RoleAdmin = Color(0xFF93C5FD)
+
+// Log action colors
+private val LogOrderCreated = Color(0xFF3B82F6)
+private val LogStatusUpdated = Color(0xFFF59E0B)
+private val LogLogin = Color(0xFF9CA3AF)
+
 @Composable
 fun AdminApp(viewModel: AdminViewModel) {
     val state by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    var currentNotification by remember { mutableStateOf<AppNotification?>(null) }
 
     LaunchedEffect(viewModel) {
-        viewModel.events.collectLatest { snackbarHostState.showSnackbar(it) }
+        viewModel.events.collectLatest { notification ->
+            currentNotification = notification
+        }
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -162,9 +209,76 @@ fun AdminApp(viewModel: AdminViewModel) {
             )
             else -> HomeScreen(
                 state = state,
-                snackbarHostState = snackbarHostState,
                 viewModel = viewModel,
             )
+        }
+
+        // Floating notification banner overlay
+        NotificationBanner(
+            notification = currentNotification,
+            onDismiss = { currentNotification = null },
+        )
+    }
+}
+
+@Composable
+private fun NotificationBanner(
+    notification: AppNotification?,
+    onDismiss: () -> Unit,
+) {
+    LaunchedEffect(notification) {
+        if (notification != null) {
+            delay(3000)
+            onDismiss()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        AnimatedVisibility(
+            visible = notification != null,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+        ) {
+            notification?.let { notif ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 48.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (notif.isError) BannerRed else BannerGreen,
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = if (notif.isError) "❌" else "✅",
+                            fontSize = 18.sp,
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = notif.message,
+                            modifier = Modifier.weight(1f),
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Dismiss",
+                                tint = Color.White.copy(alpha = 0.85f),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -432,7 +546,6 @@ private fun PasswordField(
 @Composable
 private fun HomeScreen(
     state: AdminUiState,
-    snackbarHostState: SnackbarHostState,
     viewModel: AdminViewModel,
 ) {
     var destination by rememberSaveable { mutableStateOf(RootDestination.Products) }
@@ -441,74 +554,47 @@ private fun HomeScreen(
     var selectedOrderKind by rememberSaveable { mutableStateOf<String?>(null) }
     var profileDialog by remember { mutableStateOf<ProfileDialogMode?>(null) }
     var bugDialogOpen by remember { mutableStateOf(false) }
-    var moreMenuExpanded by remember { mutableStateOf(false) }
     var previewProduct by remember { mutableStateOf<OrderProductSnapshot?>(null) }
 
     val selectedOrder = state.orders.firstOrNull {
         it.orderRef == selectedOrderRef && it.orderKind == selectedOrderKind
     }
 
-    val moreDestinations = buildList {
-        add(RootDestination.Account)
-        if (state.currentUser?.role == "super_admin") {
-            add(RootDestination.Admins)
-            add(RootDestination.Activity)
-        }
-    }
-
-    LaunchedEffect(state.currentUser?.role) {
-        if (state.currentUser?.role != "super_admin" &&
-            (destination == RootDestination.Admins || destination == RootDestination.Activity)
-        ) {
-            destination = RootDestination.Account
-        }
-    }
-
-    MainScaffold(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        destination = destination,
-        snackbarHostState = snackbarHostState,
-        onOpenMoreMenu = { moreMenuExpanded = true },
-        moreMenuExpanded = moreMenuExpanded,
-        moreDestinations = moreDestinations,
-        onDismissMoreMenu = { moreMenuExpanded = false },
-        onSelectMoreDestination = {
-            destination = it
-            moreMenuExpanded = false
-            if (it == RootDestination.Admins) viewModel.loadAdmins()
-            if (it == RootDestination.Activity) viewModel.loadActivityLogs()
-        },
-        isMoreSelected = destination !in listOf(RootDestination.Products, RootDestination.Orders),
-        onOpenBugDialog = {
-            moreMenuExpanded = false
-            bugDialogOpen = true
-        },
-        onLogout = {
-            moreMenuExpanded = false
-            viewModel.logout()
-        },
-        content = { scaffoldPadding ->
-            AdminContent(
-                scaffoldPadding = scaffoldPadding,
+        bottomBar = {
+            AdminBottomBar(
                 destination = destination,
-                state = state,
-                onSearchProducts = { viewModel.loadProducts(page = 1, search = it) },
-                onChangeProductPage = { viewModel.loadProducts(page = it, search = state.productSearch) },
-                onRefreshProducts = { viewModel.loadProducts(page = state.productPage, search = state.productSearch) },
-                onCreateProduct = { productDialog = ProductEditorState() },
-                onEditProduct = { productDialog = ProductEditorState.fromProduct(it) },
-                onOpenOrder = {
-                    selectedOrderRef = it.orderRef
-                    selectedOrderKind = it.orderKind
+                onSelectDestination = { dest ->
+                    destination = dest
+                    if (dest == RootDestination.Admins) viewModel.loadAdmins()
+                    if (dest == RootDestination.Activity) viewModel.loadActivityLogs()
                 },
-                onRequestAdminsRefresh = viewModel::loadAdmins,
-                onRequestActivityRefresh = viewModel::loadActivityLogs,
-                onOpenProfileDialog = { profileDialog = it },
-                onOpenBugDialog = { bugDialogOpen = true },
-                viewModel = viewModel,
             )
         },
-    )
+    ) { scaffoldPadding ->
+        AdminContent(
+            scaffoldPadding = scaffoldPadding,
+            destination = destination,
+            state = state,
+            onSearchProducts = { viewModel.loadProducts(page = 1, search = it) },
+            onChangeProductPage = { viewModel.loadProducts(page = it, search = state.productSearch) },
+            onRefreshProducts = { viewModel.loadProducts(page = state.productPage, search = state.productSearch) },
+            onCreateProduct = { productDialog = ProductEditorState() },
+            onEditProduct = { productDialog = ProductEditorState.fromProduct(it) },
+            onOpenOrder = {
+                selectedOrderRef = it.orderRef
+                selectedOrderKind = it.orderKind
+            },
+            onRequestAdminsRefresh = viewModel::loadAdmins,
+            onRequestActivityRefresh = viewModel::loadActivityLogs,
+            onOpenProfileDialog = { profileDialog = it },
+            onOpenBugDialog = { bugDialogOpen = true },
+            onNavigateTo = { destination = it },
+            onLogout = viewModel::logout,
+            viewModel = viewModel,
+        )
+    }
 
     productDialog?.let { editor ->
         ProductEditorSheet(
@@ -585,121 +671,69 @@ private fun HomeScreen(
 }
 
 @Composable
-private fun MainScaffold(
-    modifier: Modifier,
-    destination: RootDestination,
-    snackbarHostState: SnackbarHostState,
-    onOpenMoreMenu: () -> Unit,
-    moreMenuExpanded: Boolean,
-    moreDestinations: List<RootDestination>,
-    onDismissMoreMenu: () -> Unit,
-    onSelectMoreDestination: (RootDestination) -> Unit,
-    isMoreSelected: Boolean,
-    onOpenBugDialog: () -> Unit,
-    onLogout: () -> Unit,
-    content: @Composable (PaddingValues) -> Unit,
-) {
-    Scaffold(
-        modifier = modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            AdminBottomBar(
-                destination = destination,
-                moreMenuExpanded = moreMenuExpanded,
-                moreDestinations = moreDestinations,
-                isMoreSelected = isMoreSelected,
-                onSelectDestination = onSelectMoreDestination,
-                onSelectProducts = { onSelectMoreDestination(RootDestination.Products) },
-                onSelectOrders = { onSelectMoreDestination(RootDestination.Orders) },
-                onOpenMoreMenu = onOpenMoreMenu,
-                onDismissMoreMenu = onDismissMoreMenu,
-                onOpenBugDialog = onOpenBugDialog,
-                onLogout = onLogout,
-            )
-        },
-    ) { padding ->
-        content(padding)
-    }
-}
-
-@Composable
 private fun AdminBottomBar(
     destination: RootDestination,
-    moreMenuExpanded: Boolean,
-    moreDestinations: List<RootDestination>,
-    isMoreSelected: Boolean,
     onSelectDestination: (RootDestination) -> Unit,
-    onSelectProducts: () -> Unit,
-    onSelectOrders: () -> Unit,
-    onOpenMoreMenu: () -> Unit,
-    onDismissMoreMenu: () -> Unit,
-    onOpenBugDialog: () -> Unit,
-    onLogout: () -> Unit,
 ) {
+    val isMore = destination !in listOf(RootDestination.Products, RootDestination.Orders)
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = NavBarBlue,
+        contentColor = Color.White,
     ) {
         NavigationBarItem(
             selected = destination == RootDestination.Products,
-            onClick = onSelectProducts,
+            onClick = { onSelectDestination(RootDestination.Products) },
             icon = { Icon(Icons.Default.Inventory2, contentDescription = RootDestination.Products.title) },
-            label = { Text("Products") },
+            label = {
+                Text(
+                    "Products",
+                    fontWeight = if (destination == RootDestination.Products) FontWeight.Bold else FontWeight.Normal,
+                )
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color.White,
+                selectedTextColor = Color.White,
+                unselectedIconColor = Color.White.copy(alpha = 0.7f),
+                unselectedTextColor = Color.White.copy(alpha = 0.7f),
+                indicatorColor = Color.White.copy(alpha = 0.18f),
+            ),
         )
         NavigationBarItem(
             selected = destination == RootDestination.Orders,
-            onClick = onSelectOrders,
+            onClick = { onSelectDestination(RootDestination.Orders) },
             icon = { Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = RootDestination.Orders.title) },
-            label = { Text("Orders") },
-        )
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .clickable(onClick = onOpenMoreMenu)
-                    .padding(horizontal = 18.dp, vertical = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    Icons.Default.MoreHoriz,
-                    contentDescription = "More",
-                    tint = if (isMoreSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            label = {
+                Text(
+                    "Orders",
+                    fontWeight = if (destination == RootDestination.Orders) FontWeight.Bold else FontWeight.Normal,
                 )
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color.White,
+                selectedTextColor = Color.White,
+                unselectedIconColor = Color.White.copy(alpha = 0.7f),
+                unselectedTextColor = Color.White.copy(alpha = 0.7f),
+                indicatorColor = Color.White.copy(alpha = 0.18f),
+            ),
+        )
+        NavigationBarItem(
+            selected = isMore,
+            onClick = { onSelectDestination(RootDestination.Account) },
+            icon = { Icon(Icons.Default.MoreHoriz, contentDescription = "More") },
+            label = {
                 Text(
                     "More",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (isMoreSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (isMore) FontWeight.Bold else FontWeight.Normal,
                 )
-            }
-            androidx.compose.material3.DropdownMenu(
-                expanded = moreMenuExpanded,
-                onDismissRequest = onDismissMoreMenu,
-            ) {
-                moreDestinations.forEach { item ->
-                    DropdownMenuItem(
-                        text = { Text(item.title) },
-                        leadingIcon = { Icon(destinationIcon(item), contentDescription = null) },
-                        onClick = { onSelectDestination(item) },
-                    )
-                }
-                HorizontalDivider()
-                DropdownMenuItem(
-                    text = { Text("Report bug") },
-                    leadingIcon = { Icon(Icons.Default.BugReport, contentDescription = null) },
-                    onClick = onOpenBugDialog,
-                )
-                DropdownMenuItem(
-                    text = { Text("Logout") },
-                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
-                    onClick = onLogout,
-                )
-            }
-        }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color.White,
+                selectedTextColor = Color.White,
+                unselectedIconColor = Color.White.copy(alpha = 0.7f),
+                unselectedTextColor = Color.White.copy(alpha = 0.7f),
+                indicatorColor = Color.White.copy(alpha = 0.18f),
+            ),
+        )
     }
 }
 
@@ -718,6 +752,8 @@ private fun AdminContent(
     onRequestActivityRefresh: () -> Unit,
     onOpenProfileDialog: (ProfileDialogMode) -> Unit,
     onOpenBugDialog: () -> Unit,
+    onNavigateTo: (RootDestination) -> Unit,
+    onLogout: () -> Unit,
     viewModel: AdminViewModel,
 ) {
     when (destination) {
@@ -764,10 +800,14 @@ private fun AdminContent(
             loading = state.activityLoading,
             onRefresh = onRequestActivityRefresh,
         )
-        RootDestination.Account -> AccountScreen(
+        RootDestination.Account -> MoreScreen(
             padding = screenPadding(scaffoldPadding),
+            currentUser = state.currentUser,
+            isSuperAdmin = state.currentUser?.role == "super_admin",
             onOpenProfileDialog = onOpenProfileDialog,
             onOpenBugDialog = onOpenBugDialog,
+            onNavigateTo = onNavigateTo,
+            onLogout = onLogout,
         )
     }
 }
@@ -847,6 +887,18 @@ private fun ProductsScreen(
 ) {
     var query by rememberSaveable(currentSearch) { mutableStateOf(currentSearch) }
     val totalPages = maxOf(1, (total + pageSize - 1) / pageSize)
+    var showFilter by remember { mutableStateOf(false) }
+    var filterCategory by rememberSaveable { mutableStateOf("All") }
+    var filterMetal by rememberSaveable { mutableStateOf("All") }
+    var filterStock by rememberSaveable { mutableStateOf("All") }
+
+    val filtered = remember(products, filterCategory, filterMetal, filterStock) {
+        products.filter { p ->
+            (filterCategory == "All" || p.category.equals(filterCategory, ignoreCase = true)) &&
+            (filterMetal == "All" || p.metal.equals(filterMetal, ignoreCase = true)) &&
+            (filterStock == "All" || p.stockStatus == filterStock)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -854,17 +906,32 @@ private fun ProductsScreen(
             .padding(padding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = {
-                query = it
-                onSearch(it)
-            },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Search by name, ID, or category") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            singleLine = true,
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = {
+                    query = it
+                    onSearch(it)
+                },
+                modifier = Modifier.weight(1f),
+                label = { Text("Search by name, ID, or category") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
+            )
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp),
+            ) {
+                IconButton(onClick = { showFilter = true }) {
+                    Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -886,23 +953,30 @@ private fun ProductsScreen(
                 contentDescription = "Refresh products",
                 onClick = onRefresh,
             )
-            SheetActionButton(
-                icon = Icons.Default.Add,
-                contentDescription = "Add product",
-                primary = true,
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
                 onClick = onCreateProduct,
-            )
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Add Product")
+            }
         }
         if (loading && products.isEmpty()) {
             LoadingCard("Loading products")
-        } else if (products.isEmpty()) {
-            EmptyCard("No products found.")
+        } else if (filtered.isEmpty()) {
+            EmptyStateCard(
+                icon = Icons.Default.Inventory2,
+                title = "No products found",
+                subtitle = "Try adjusting your search or filters.",
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                items(products) { product ->
+                items(filtered) { product ->
                     ProductCard(product = product, onEdit = { onEditProduct(product) })
                 }
             }
@@ -913,6 +987,80 @@ private fun ProductsScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+
+    if (showFilter) {
+        ProductFilterDialog(
+            category = filterCategory,
+            metal = filterMetal,
+            stock = filterStock,
+            onApply = { cat, met, stk ->
+                filterCategory = cat
+                filterMetal = met
+                filterStock = stk
+                showFilter = false
+            },
+            onDismiss = { showFilter = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProductFilterDialog(
+    category: String,
+    metal: String,
+    stock: String,
+    onApply: (String, String, String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var selectedCategory by rememberSaveable { mutableStateOf(category) }
+    var selectedMetal by rememberSaveable { mutableStateOf(metal) }
+    var selectedStock by rememberSaveable { mutableStateOf(stock) }
+    var catExpanded by remember { mutableStateOf(false) }
+    var metalExpanded by remember { mutableStateOf(false) }
+    var stockExpanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = { onApply(selectedCategory, selectedMetal, selectedStock) }) { Text("Apply") }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                selectedCategory = "All"; selectedMetal = "All"; selectedStock = "All"
+                onApply("All", "All", "All")
+            }) { Text("Clear All") }
+        },
+        title = { Text("Filter Products") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                DropdownField(
+                    label = "Category",
+                    value = selectedCategory,
+                    expanded = catExpanded,
+                    onExpandedChange = { catExpanded = it },
+                    options = listOf("All") + ProductCategories,
+                    onSelected = { selectedCategory = it; catExpanded = false },
+                )
+                DropdownField(
+                    label = "Metal",
+                    value = selectedMetal,
+                    expanded = metalExpanded,
+                    onExpandedChange = { metalExpanded = it },
+                    options = listOf("All", "gold", "silver"),
+                    onSelected = { selectedMetal = it; metalExpanded = false },
+                )
+                DropdownField(
+                    label = "Stock Status",
+                    value = selectedStock,
+                    expanded = stockExpanded,
+                    onExpandedChange = { stockExpanded = it },
+                    options = listOf("All") + StockOptions,
+                    onSelected = { selectedStock = it; stockExpanded = false },
+                )
+            }
+        },
+    )
 }
 
 @Composable
@@ -924,6 +1072,7 @@ private fun ProductCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onEdit),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -939,17 +1088,50 @@ private fun ProductCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(product.title, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(product.productId, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        labelize(product.category),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            labelize(product.category),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        StockDot(product.stockStatus)
+                        Text(
+                            labelize(product.stockStatus),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = stockDotColor(product.stockStatus),
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+@Composable
+private fun StockDot(stockStatus: String) {
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .clip(CircleShape)
+            .background(stockDotColor(stockStatus)),
+    )
+}
+
+private fun stockDotColor(status: String): Color {
+    return when (status) {
+        "in_stock" -> StockInColor
+        "low_stock" -> StockLowColor
+        "out_of_stock" -> StockOutColor
+        "made_to_order" -> StockMadeColor
+        else -> StockInColor
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OrdersScreen(
     padding: PaddingValues,
@@ -958,9 +1140,11 @@ private fun OrdersScreen(
     onOpenOrder: (AdminOrderItem) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filtered = remember(query, orders) {
-        if (query.isBlank()) orders else orders.filter { order ->
-            listOf(
+    var statusFilter by rememberSaveable { mutableStateOf("all") }
+    val filtered = remember(query, orders, statusFilter) {
+        orders.filter { order ->
+            (statusFilter == "all" || order.status == statusFilter) &&
+            (query.isBlank() || listOf(
                 order.orderRef,
                 order.customerName,
                 order.phone,
@@ -969,7 +1153,7 @@ private fun OrdersScreen(
                 order.budget,
                 order.description,
                 order.products.joinToString(" ") { "${it.productId} ${it.title}" },
-            ).joinToString(" ").contains(query, ignoreCase = true)
+            ).joinToString(" ").contains(query, ignoreCase = true))
         }
     }
 
@@ -987,10 +1171,26 @@ private fun OrdersScreen(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true,
         )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            listOf("all", "new", "contacted", "quoted", "closed").forEach { status ->
+                FilterChip(
+                    selected = statusFilter == status,
+                    onClick = { statusFilter = status },
+                    label = { Text(labelize(status)) },
+                )
+            }
+        }
         if (loading && orders.isEmpty()) {
             LoadingCard("Loading orders")
         } else if (filtered.isEmpty()) {
-            EmptyCard("No orders found.")
+            EmptyStateCard(
+                icon = Icons.AutoMirrored.Filled.ListAlt,
+                title = "No orders found",
+                subtitle = if (statusFilter != "all") "No ${labelize(statusFilter)} orders." else "Orders will appear here.",
+            )
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(filtered) { order ->
@@ -1011,6 +1211,7 @@ private fun OrderRowCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
@@ -1022,21 +1223,56 @@ private fun OrderRowCard(
                     Text(order.orderRef, fontWeight = FontWeight.Bold)
                     Text(order.customerName, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                ChipRow(values = listOf(labelize(order.orderKind.removeSuffix("_order")), labelize(order.status)))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(labelize(order.orderKind.removeSuffix("_order")), style = MaterialTheme.typography.bodySmall) },
+                    )
+                    StatusPill(status = order.status)
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(order.phone, style = MaterialTheme.typography.bodyMedium)
-                IconButton(onClick = {
-                    val phone = normalizePhone(order.phone)
-                    if (phone.isNotBlank()) {
-                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
-                    }
-                }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Call ${order.phone}")
+                OutlinedButton(
+                    onClick = {
+                        val phone = normalizePhone(order.phone)
+                        if (phone.isNotBlank()) {
+                            context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                        }
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StatusContacted),
+                ) {
+                    Icon(Icons.Default.Phone, contentDescription = "Call", modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(order.phone, style = MaterialTheme.typography.bodyMedium)
                 }
             }
             Text(formatDate(order.createdAt), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+@Composable
+private fun StatusPill(status: String) {
+    val color = when (status) {
+        "new" -> StatusNew
+        "contacted" -> StatusContacted
+        "quoted" -> StatusQuoted
+        "closed" -> StatusClosed
+        else -> StatusNew
+    }
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = color.copy(alpha = 0.15f),
+    ) {
+        Text(
+            text = labelize(status),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            color = color,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
@@ -1088,9 +1324,15 @@ private fun AdminsScreen(
             }
         }
         item {
-            Card {
+            Card(
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Create admin", fontWeight = FontWeight.SemiBold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                        Text("Create admin", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                    }
+                    HorizontalDivider()
                     OutlinedTextField(
                         value = newAdminName,
                         onValueChange = { newAdminName = it },
@@ -1132,9 +1374,15 @@ private fun AdminsScreen(
             }
         }
         item {
-            Card {
+            Card(
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Delete admin", fontWeight = FontWeight.SemiBold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                        Text("Delete admin", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                    }
+                    HorizontalDivider()
                     OutlinedTextField(
                         value = deleteEmail,
                         onValueChange = { deleteEmail = it },
@@ -1172,7 +1420,13 @@ private fun AdminsScreen(
         if (loading && admins.isEmpty()) {
             item { LoadingCard("Loading admins") }
         } else if (filtered.isEmpty()) {
-            item { EmptyCard("No admin accounts found.") }
+            item {
+                EmptyStateCard(
+                    icon = Icons.Default.AdminPanelSettings,
+                    title = "No admin accounts found",
+                    subtitle = "Create a new admin to get started.",
+                )
+            }
         } else {
             items(filtered) { admin ->
                 ExpandableAdminCard(
@@ -1185,6 +1439,25 @@ private fun AdminsScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun RoleBadge(role: String) {
+    val isSuperAdmin = role == "super_admin"
+    val bgColor = if (isSuperAdmin) RoleSuperAdmin else RoleAdmin
+    val textColor = if (isSuperAdmin) Color.White else Color(0xFF1E3A8A)
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = bgColor.copy(alpha = if (isSuperAdmin) 1f else 0.3f),
+    ) {
+        Text(
+            text = labelize(role),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            color = textColor,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }
 
@@ -1203,7 +1476,10 @@ private fun ExpandableAdminCard(
     var editOtp by rememberSaveable(admin.email) { mutableStateOf("") }
     var deleteOtp by rememberSaveable(admin.email) { mutableStateOf("") }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1214,11 +1490,23 @@ private fun ExpandableAdminCard(
                     Text(admin.name, fontWeight = FontWeight.SemiBold)
                     Text(admin.email, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                TextButton(onClick = { expanded = !expanded }, enabled = admin.email != currentUser?.email) {
-                    Text(if (expanded) "Hide" else "Manage")
+                if (admin.email != currentUser?.email) {
+                    FilledTonalButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            if (expanded) Icons.Default.Close else Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(if (expanded) "Hide" else "Manage")
+                    }
                 }
             }
-            ChipRow(values = (admin.roles.ifEmpty { listOf(admin.role) }).map(::labelize))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                (admin.roles.ifEmpty { listOf(admin.role) }).forEach { role ->
+                    RoleBadge(role = role)
+                }
+            }
 
             if (expanded) {
                 HorizontalDivider()
@@ -1279,6 +1567,7 @@ private fun ExpandableAdminCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ActivityLogsScreen(
     padding: PaddingValues,
@@ -1287,18 +1576,42 @@ private fun ActivityLogsScreen(
     onRefresh: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filtered = remember(query, activityLogs) {
-        if (query.isBlank()) activityLogs else activityLogs.filter {
-            listOf(
-                it.action,
-                it.performedByName,
-                it.performedByEmail,
-                it.target,
-                it.detail,
-                it.oldValue?.toString(),
-                it.newValue?.toString(),
-                it.extra?.toString(),
-            ).joinToString(" ").contains(query, ignoreCase = true)
+    var dateFilter by rememberSaveable { mutableStateOf("all") }
+    val filtered = remember(query, activityLogs, dateFilter) {
+        val now = LocalDate.now()
+        activityLogs.filter { log ->
+            val matchesDate = when (dateFilter) {
+                "today" -> runCatching {
+                    OffsetDateTime.parse(log.createdAt)
+                        .atZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDate() == now
+                }.getOrElse { true }
+                "week" -> runCatching {
+                    val logDate = OffsetDateTime.parse(log.createdAt)
+                        .atZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDate()
+                    val weekFields = WeekFields.of(Locale.getDefault())
+                    logDate.get(weekFields.weekOfWeekBasedYear()) == now.get(weekFields.weekOfWeekBasedYear()) &&
+                        logDate.year == now.year
+                }.getOrElse { true }
+                "month" -> runCatching {
+                    val logDate = OffsetDateTime.parse(log.createdAt)
+                        .atZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDate()
+                    logDate.month == now.month && logDate.year == now.year
+                }.getOrElse { true }
+                else -> true
+            }
+            matchesDate && (query.isBlank() || listOf(
+                log.action,
+                log.performedByName,
+                log.performedByEmail,
+                log.target,
+                log.detail,
+                log.oldValue?.toString(),
+                log.newValue?.toString(),
+                log.extra?.toString(),
+            ).joinToString(" ").contains(query, ignoreCase = true))
         }
     }
 
@@ -1326,10 +1639,27 @@ private fun ActivityLogsScreen(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true,
         )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            listOf("all" to "All", "today" to "Today", "week" to "This Week", "month" to "This Month").forEach { (key, label) ->
+                FilterChip(
+                    selected = dateFilter == key,
+                    onClick = { dateFilter = key },
+                    label = { Text(label) },
+                    leadingIcon = if (key != "all") {{ Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp)) }} else null,
+                )
+            }
+        }
         if (loading && activityLogs.isEmpty()) {
             LoadingCard("Loading activity logs")
         } else if (filtered.isEmpty()) {
-            EmptyCard("No activity logs found.")
+            EmptyStateCard(
+                icon = Icons.Default.Visibility,
+                title = "No activity logs found",
+                subtitle = "Logs will appear as actions are performed.",
+            )
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(filtered) { log ->
@@ -1343,37 +1673,72 @@ private fun ActivityLogsScreen(
 @Composable
 private fun ActivityLogCard(log: ActivityLogResponse) {
     var expanded by rememberSaveable(log.id) { mutableStateOf(false) }
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(labelize(log.action), fontWeight = FontWeight.SemiBold)
+                ActionLabel(action = log.action)
                 TextButton(onClick = { expanded = !expanded }) {
                     Text(if (expanded) "Hide" else "View")
                 }
             }
             Text(log.target ?: "-", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (log.performedByName != null || log.performedByEmail != null) {
+                Text(
+                    "by ${log.performedByName ?: log.performedByEmail ?: "Unknown"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(formatDate(log.createdAt), style = MaterialTheme.typography.bodySmall)
             Text(log.detail ?: "-", maxLines = if (expanded) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis)
             if (expanded) {
-                JsonBlock("Old Value", log.oldValue?.toString())
-                JsonBlock("New Value", log.newValue?.toString())
-                JsonBlock("Extra", log.extra?.toString())
+                HumanReadableBlock("Old Value", log.oldValue?.toString())
+                HumanReadableBlock("New Value", log.newValue?.toString())
+                HumanReadableBlock("Extra", log.extra?.toString())
             }
         }
     }
 }
 
 @Composable
-private fun JsonBlock(title: String, text: String?) {
+private fun ActionLabel(action: String) {
+    val normalized = action.lowercase().replace(" ", "_")
+    val color = when {
+        normalized.contains("order_created") || normalized.contains("create") -> LogOrderCreated
+        normalized.contains("status_updated") || normalized.contains("update") -> LogStatusUpdated
+        normalized.contains("login") -> LogLogin
+        normalized.contains("delete") -> Color(0xFFEF4444)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.12f),
+    ) {
+        Text(
+            text = labelize(action),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            color = color,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@Composable
+private fun HumanReadableBlock(title: String, text: String?) {
     if (text.isNullOrBlank() || text == "null") return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        val formatted = formatJsonHumanReadable(text)
         Text(
-            text,
+            formatted,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier
                 .fillMaxWidth()
@@ -1384,19 +1749,166 @@ private fun JsonBlock(title: String, text: String?) {
     }
 }
 
+/** Convert raw JSON-like strings to human-readable key: value format. */
+private fun formatJsonHumanReadable(raw: String): String {
+    return try {
+        // Simple parsing: remove braces, split by commas, format key-value pairs
+        val cleaned = raw.trim().removePrefix("{").removeSuffix("}")
+        if (cleaned.isBlank()) return raw
+        cleaned.split(",").joinToString("\n") { pair ->
+            val parts = pair.split(":", limit = 2)
+            if (parts.size == 2) {
+                val key = parts[0].trim().removeSurrounding("\"")
+                val value = parts[1].trim().removeSurrounding("\"")
+                "${labelize(key)}: $value"
+            } else {
+                pair.trim()
+            }
+        }
+    } catch (_: Exception) {
+        raw
+    }
+}
+
 @Composable
-private fun AccountScreen(
+private fun MoreScreen(
     padding: PaddingValues,
+    currentUser: UserResponse?,
+    isSuperAdmin: Boolean,
     onOpenProfileDialog: (ProfileDialogMode) -> Unit,
     onOpenBugDialog: () -> Unit,
+    onNavigateTo: (RootDestination) -> Unit,
+    onLogout: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = padding,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Profile header with avatar
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    // Avatar circle with initials
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(NavBarBlue, Color(0xFF3B82F6)),
+                                ),
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = currentUser?.name
+                                ?.split(" ")
+                                ?.take(2)
+                                ?.mapNotNull { it.firstOrNull()?.uppercase() }
+                                ?.joinToString("")
+                                ?: "?",
+                            color = Color.White,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Text(
+                        currentUser?.name ?: "Admin",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        currentUser?.email ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (currentUser != null) {
+                        RoleBadge(role = currentUser.role)
+                    }
+                }
+            }
+        }
+        // Navigation cards for super admin
+        if (isSuperAdmin) {
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateTo(RootDestination.Admins) },
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(Icons.Default.AdminPanelSettings, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Manage Admins", fontWeight = FontWeight.SemiBold)
+                            Text("Create, edit, or delete admin accounts", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateTo(RootDestination.Activity) },
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(Icons.Default.Visibility, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Activity Logs", fontWeight = FontWeight.SemiBold)
+                            Text("View all portal activity and changes", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+        // Profile actions
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Profile actions", fontWeight = FontWeight.SemiBold)
                     FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Name) }, modifier = Modifier.fillMaxWidth()) {
@@ -1417,20 +1929,36 @@ private fun AccountScreen(
                 }
             }
         }
+        // Support
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Support", fontWeight = FontWeight.SemiBold)
                     Text(
                         "Report issues from the mobile app directly to the admin portal support flow.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Button(onClick = onOpenBugDialog, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = onOpenBugDialog, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.BugReport, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Report bug")
                     }
                 }
+            }
+        }
+        // Logout
+        item {
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Logout")
             }
         }
     }
@@ -2044,15 +2572,44 @@ private fun LoadingCard(text: String) {
 }
 
 @Composable
-private fun EmptyCard(text: String) {
+private fun EmptyStateCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            contentAlignment = Alignment.Center,
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(text, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                )
+            }
+            Text(
+                title,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                subtitle,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

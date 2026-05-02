@@ -21,14 +21,20 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/** Represents a notification banner event with success/error categorization. */
+data class AppNotification(
+    val message: String,
+    val isError: Boolean = false,
+)
+
 class AdminViewModel(
     private val repository: AdminRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AdminUiState())
     val uiState: StateFlow<AdminUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<String>()
-    val events: SharedFlow<String> = _events.asSharedFlow()
+    private val _events = MutableSharedFlow<AppNotification>()
+    val events: SharedFlow<AppNotification> = _events.asSharedFlow()
 
     init {
         bootstrap()
@@ -57,7 +63,7 @@ class AdminViewModel(
             }.onFailure {
                 repository.logout()
                 _uiState.value = AdminUiState(isBootstrapping = false)
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -73,10 +79,10 @@ class AdminViewModel(
                     currentUser = user,
                 )
                 refreshAll()
-                emitEvent("Login successful.")
+                emitSuccess("Login successful.")
             }.onFailure {
                 _uiState.value = _uiState.value.copy(authLoading = false)
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -93,9 +99,9 @@ class AdminViewModel(
             runCatching {
                 repository.requestForgotPassword(email)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -105,9 +111,9 @@ class AdminViewModel(
             runCatching {
                 repository.resetForgotPassword(email, otp, newPassword)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -133,7 +139,7 @@ class AdminViewModel(
                 )
             }.onFailure {
                 _uiState.value = _uiState.value.copy(ordersLoading = false)
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -151,7 +157,7 @@ class AdminViewModel(
                 applyProducts(result)
             }.onFailure {
                 _uiState.value = _uiState.value.copy(productsLoading = false)
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -161,12 +167,12 @@ class AdminViewModel(
             runCatching {
                 repository.createProduct(payload, images)
             }.onSuccess {
-                emitEvent("Product created successfully.")
+                emitSuccess("Product created successfully.")
                 loadOrders()
                 loadProducts(page = 1, search = _uiState.value.productSearch)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -176,12 +182,12 @@ class AdminViewModel(
             runCatching {
                 repository.updateProduct(productId, payload, images)
             }.onSuccess {
-                emitEvent("Product updated.")
+                emitSuccess("Product updated.")
                 loadOrders()
                 loadProducts(page = _uiState.value.productPage, search = _uiState.value.productSearch)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -191,12 +197,12 @@ class AdminViewModel(
             runCatching {
                 repository.deleteProduct(productId)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 loadOrders()
                 loadProducts(page = _uiState.value.productPage, search = _uiState.value.productSearch)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -211,7 +217,7 @@ class AdminViewModel(
                 _uiState.value = _uiState.value.copy(adminsLoading = false, admins = it)
             }.onFailure {
                 _uiState.value = _uiState.value.copy(adminsLoading = false)
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -226,7 +232,7 @@ class AdminViewModel(
                 _uiState.value = _uiState.value.copy(activityLoading = false, activityLogs = it)
             }.onFailure {
                 _uiState.value = _uiState.value.copy(activityLoading = false)
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -264,11 +270,11 @@ class AdminViewModel(
             runCatching {
                 repository.updateOrderStatus(orderRef, orderKind, status)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 loadOrders()
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -278,10 +284,10 @@ class AdminViewModel(
             runCatching {
                 repository.addOrderComment(orderRef, orderKind, comment)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 loadOrders()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -291,11 +297,11 @@ class AdminViewModel(
             runCatching {
                 repository.deleteOrder(orderRef, orderKind)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 loadOrders()
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -306,9 +312,9 @@ class AdminViewModel(
                 repository.updateProfile(name, email)
             }.onSuccess {
                 _uiState.value = _uiState.value.copy(currentUser = it)
-                emitEvent("Profile updated.")
+                emitSuccess("Profile updated.")
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -318,10 +324,10 @@ class AdminViewModel(
             runCatching {
                 repository.updatePassword(currentPassword, newPassword)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 logout()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -332,10 +338,10 @@ class AdminViewModel(
                 repository.updateEmail(email, currentPassword)
             }.onSuccess {
                 _uiState.value = _uiState.value.copy(currentUser = it)
-                emitEvent("Email updated. Please sign in again.")
+                emitSuccess("Email updated. Please sign in again.")
                 logout()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -345,10 +351,10 @@ class AdminViewModel(
             runCatching {
                 repository.reportBug(title, severity, description, imageUri)
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
             }
         }
     }
@@ -374,17 +380,23 @@ class AdminViewModel(
             runCatching {
                 action()
             }.onSuccess {
-                emitEvent(it)
+                emitSuccess(it)
                 if (refreshAdmins) loadAdmins()
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
-                emitEvent(it.toUserMessage())
+                emitError(it.toUserMessage())
+                if (refreshAdmins) loadAdmins()
+                if (isSuperAdmin()) loadActivityLogs()
             }
         }
     }
 
-    private suspend fun emitEvent(message: String) {
-        _events.emit(message)
+    private suspend fun emitSuccess(message: String) {
+        _events.emit(AppNotification(message = message, isError = false))
+    }
+
+    private suspend fun emitError(message: String) {
+        _events.emit(AppNotification(message = message, isError = true))
     }
 
     companion object {
