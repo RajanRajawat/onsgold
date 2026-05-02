@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from api.routes.admin import router as admin_router
 from api.routes.auth import router as auth_router
+from api.routes.cron import router as cron_router
 from api.routes.dashboard import router as dashboard_router
 from api.routes.inquiries import router as inquiries_router
 from api.routes.products import router as products_router
@@ -14,6 +15,7 @@ from api.routes.uploads import router as uploads_router
 from core.config import get_settings
 from core.logging import configure_logging, get_logger
 from db.mongo import close_mongo_connection, init_indexes
+from services.cron_service import ensure_cronjob_document
 
 configure_logging()
 logger = get_logger(__name__)
@@ -23,6 +25,7 @@ _index_init_task: asyncio.Task | None = None
 async def _init_indexes_in_background():
     try:
         await init_indexes()
+        await ensure_cronjob_document()
         logger.info("MongoDB indexes initialized")
     except Exception:
         logger.exception("MongoDB index initialization failed")
@@ -62,6 +65,7 @@ app.include_router(products_router, prefix="/api/v1")
 app.include_router(inquiries_router, prefix="/api/v1")
 app.include_router(uploads_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
+app.include_router(cron_router)
 
 
 @app.exception_handler(Exception)

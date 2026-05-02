@@ -49,6 +49,10 @@ def get_activity_log_collection() -> AsyncIOMotorCollection:
     return get_database()["activity_logs"]
 
 
+def get_cronjob_collection() -> AsyncIOMotorCollection:
+    return get_database()["cronjob"]
+
+
 async def init_indexes():
     await get_admin_collection().create_index("email", unique=True)
     await get_admin_collection().create_index("role")
