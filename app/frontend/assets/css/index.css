@@ -720,13 +720,12 @@ section {
 }
 
 .featured-products-slide .product-actions {
-  grid-template-columns: 1fr;
+  justify-content: center;
 }
 
-.featured-products-slide .btn-quiet {
-  width: 100%;
+.featured-products-slide .product-action-select {
   min-height: 40px;
-  padding: 0.68rem 0.9rem;
+  padding: 0.68rem 0;
   font-size: 0.88rem;
 }
 
@@ -988,8 +987,44 @@ section {
   left: 0.75rem;
   right: 0.75rem;
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.product-badge-group,
+.product-tag-group {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+}
+
+.product-tag-group {
+  justify-content: flex-end;
+}
+
+.product-media-view-indicator {
+  position: absolute;
+  left: 0.8rem;
+  bottom: 0.8rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.46);
+  color: var(--gold-light);
+  box-shadow: 0 8px 18px rgba(10, 10, 10, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.product-media-view-indicator svg {
+  display: block;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .badge,
@@ -1028,9 +1063,10 @@ section {
   line-height: 1.08;
 }
 
-.product-desc {
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 0.86rem;
+.product-card-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .product-meta,
@@ -1041,16 +1077,55 @@ section {
 }
 
 .product-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
   margin-top: auto;
+}
+
+.product-action-btn {
+  min-height: auto;
+  padding: 0.4rem 0;
+}
+
+.product-action-select {
+  gap: 0.6rem;
+}
+
+.product-action-select {
+  width: auto;
+  padding: 0.3rem 0;
+  margin: 0 auto;
+}
+
+.product-action-select::after {
+  content: none;
+}
+
+.product-action-icon {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+}
+
+.product-action-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.product-action-label {
+  white-space: nowrap;
 }
 
 .select-btn.is-selected {
   border-color: var(--gold);
   background: var(--gold);
   color: var(--red-dark);
+  padding-inline: 0.95rem;
+  min-height: 2.35rem;
 }
 
 .pagination {
@@ -1901,7 +1976,6 @@ footer {
     position: static;
   }
 
-  .product-actions,
   .order-bar-inner {
     grid-template-columns: 1fr;
   }

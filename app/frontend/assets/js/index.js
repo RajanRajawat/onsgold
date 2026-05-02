@@ -12,6 +12,25 @@ const PRODUCT_CARD_SLIDE_INTERVAL_MS = 2800;
 const FEATURED_PRODUCTS_TOTAL = 9;
 const FEATURED_PRODUCTS_SLIDE_SIZE = 3;
 const FEATURED_PRODUCTS_SLIDE_INTERVAL_MS = 4200;
+const PRODUCT_ACTION_ICONS = {
+  view: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1.5 12s3.8-6.5 10.5-6.5S22.5 12 22.5 12 18.7 18.5 12 18.5 1.5 12 1.5 12Z" />
+      <circle cx="12" cy="12" r="3.25" />
+    </svg>
+  `,
+  select: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  `,
+  selected: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5.5 12.5 9.5 16.5 18.5 7.5" />
+    </svg>
+  `,
+};
 
 const state = {
   products: [],
@@ -76,6 +95,13 @@ function formatProductWeight(product) {
 function truncate(value, maxLength) {
   const text = String(value || "");
   return text.length > maxLength ? `${text.slice(0, Math.max(0, maxLength - 3))}...` : text;
+}
+
+function buildProductActionContent(icon, label) {
+  return `
+    <span class="product-action-icon" aria-hidden="true">${PRODUCT_ACTION_ICONS[icon] || ""}</span>
+    ${label ? `<span class="product-action-label">${escapeHtml(label)}</span>` : ""}
+  `;
 }
 
 function chunkArray(items, size) {
@@ -383,12 +409,11 @@ function buildProductCard(product, options = {}) {
   const images = Array.isArray(product.images) && product.images.length
     ? product.images
     : [productImage(product)];
-  const price = formatProductPrice(product);
+  const cardTags = (product.tags || []).slice(0, 3);
   const metaItems = [
     product.product_id,
     stockLabel(product.metal),
     formatProductWeight(product),
-    stockLabel(product.stock_status),
   ].filter(Boolean);
   const showSelect = options.showSelect ?? true;
   const cardClasses = ["product-card"];
@@ -415,30 +440,34 @@ function buildProductCard(product, options = {}) {
           <img src="${escapeHtml(images[0])}" alt="${escapeHtml(product.title)}" loading="lazy" />
         `}
         <div class="product-badges">
-          <span class="badge">${escapeHtml(product.category)}</span>
-          <span class="badge">${escapeHtml(product.purity)}</span>
+          <div class="product-badge-group">
+            <span class="badge">${escapeHtml(product.category)}</span>
+            <span class="badge">${escapeHtml(product.purity)}</span>
+          </div>
+          ${cardTags.length ? `
+            <div class="product-tag-group">
+              ${cardTags.map(tag => `<span class="badge">${escapeHtml(tag)}</span>`).join("")}
+            </div>
+          ` : ""}
         </div>
+        <span class="product-media-view-indicator" aria-hidden="true">
+          ${PRODUCT_ACTION_ICONS.view}
+        </span>
       </button>
       <div class="product-body">
-        <div>
+        <div class="product-card-heading">
           <h2 class="product-title">${escapeHtml(product.title)}</h2>
           <div class="product-meta">
             ${metaItems.map(value => `<span class="pill">${escapeHtml(value)}</span>`).join("")}
           </div>
         </div>
-        <p class="product-desc">${escapeHtml(truncate(product.description, 150))}</p>
-        <div class="tag-row">
-          <span class="tag">${escapeHtml(price)}</span>
-          ${(product.tags || []).slice(0, 3).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}
-        </div>
-        <div class="product-actions">
-          <button type="button" class="btn-quiet" data-view="${escapeHtml(product.product_id)}">View</button>
-          ${showSelect ? `
-            <button type="button" class="btn-secondary select-btn ${selected ? "is-selected" : ""}" data-select="${escapeHtml(product.product_id)}" ${isOut ? "disabled" : ""}>
-              ${isOut ? "Unavailable" : selected ? "Selected" : "Select"}
+        ${showSelect ? `
+          <div class="product-actions">
+            <button type="button" class="btn-secondary product-action-btn product-action-select select-btn ${selected ? "is-selected" : ""}" data-select="${escapeHtml(product.product_id)}" ${isOut ? "disabled" : ""} aria-label="${isOut ? `Unavailable ${escapeHtml(product.title)}` : `${selected ? "Selected" : "Select"} ${escapeHtml(product.title)}`}" aria-pressed="${selected ? "true" : "false"}">
+              ${buildProductActionContent(selected ? "selected" : "select", isOut ? "Unavailable" : selected ? "Selected" : "Select")}
             </button>
-          ` : ""}
-        </div>
+          </div>
+        ` : ""}
       </div>
     </article>
   `;
