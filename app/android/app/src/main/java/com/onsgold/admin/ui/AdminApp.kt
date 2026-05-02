@@ -1,7 +1,10 @@
 package com.onsgold.admin.ui
 
+import android.app.DownloadManager
 import android.content.Intent
+import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -31,6 +34,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -2258,15 +2262,30 @@ private fun DropdownField(
 }
 
 @Composable
-private fun HorizontalImageRow(urls: List<String>) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        urls.take(4).forEach { image ->
+private fun HorizontalImageRow(
+    urls: List<String>,
+    onImageClick: ((String) -> Unit)? = null,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+    ) {
+        urls.forEach { image ->
             AsyncImage(
                 model = image,
                 contentDescription = null,
                 modifier = Modifier
                     .size(72.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(RoundedCornerShape(12.dp))
+                    .then(
+                        if (onImageClick == null) {
+                            Modifier
+                        } else {
+                            Modifier.clickable { onImageClick(image) }
+                        },
+                    ),
                 contentScale = ContentScale.Crop,
             )
         }
@@ -2287,6 +2306,7 @@ private fun OrderDetailSheet(
     var comment by rememberSaveable(order.orderRef) { mutableStateOf("") }
     var draftStatus by rememberSaveable(order.orderRef) { mutableStateOf(order.status) }
     var confirmDelete by rememberSaveable(order.orderRef) { mutableStateOf(false) }
+    var selectedCustomOrderImage by rememberSaveable(order.orderRef) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     LaunchedEffect(order.status) {
@@ -2325,7 +2345,10 @@ private fun OrderDetailSheet(
                 DetailLine("Purity", order.purity.orEmpty())
                 DetailLine("Description", order.description.orEmpty())
                 if (order.imageUrls.isNotEmpty()) {
-                    HorizontalImageRow(order.imageUrls)
+                    HorizontalImageRow(
+                        urls = order.imageUrls,
+                        onImageClick = { selectedCustomOrderImage = it },
+                    )
                 }
             } else {
                 Text("Products", fontWeight = FontWeight.SemiBold)
@@ -2393,6 +2416,72 @@ private fun OrderDetailSheet(
                 onDelete()
             },
         )
+    }
+
+    selectedCustomOrderImage?.let { imageUrl ->
+        CustomOrderImageDialog(
+            imageUrl = imageUrl,
+            onDismiss = { selectedCustomOrderImage = null },
+            onDownload = {
+                downloadCustomOrderImage(context, imageUrl)
+            },
+        )
+    }
+}
+
+private fun downloadCustomOrderImage(context: Context, imageUrl: String) {
+    val request = DownloadManager.Request(Uri.parse(imageUrl)).apply {
+        setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        setAllowedOverMetered(true)
+        setAllowedOverRoaming(true)
+        setTitle("ONS Gold custom order image")
+        setDescription("Downloading customer-uploaded custom order image")
+        val filename = Uri.parse(imageUrl).lastPathSegment?.substringBefore('?')?.takeIf { it.isNotBlank() }
+            ?: "ons-gold-custom-order-image.jpg"
+        setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+    }
+    context.getSystemService(DownloadManager::class.java)?.enqueue(request)
+}
+
+@Composable
+private fun CustomOrderImageDialog(
+    imageUrl: String,
+    onDismiss: () -> Unit,
+    onDownload: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Custom order uploaded image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(320.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                    contentScale = ContentScale.Fit,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Close")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = onDownload) {
+                        Text("Download Image")
+                    }
+                }
+            }
+        }
     }
 }
 
