@@ -8,7 +8,7 @@ from core.config import get_settings
 from core.security import create_access_token, hash_password, verify_password
 from db.mongo import get_admin_collection, get_otp_collection, utc_now
 from models.auth import UserResponse, UserRole
-from services.email_service import send_admin_action_otp, send_admin_credentials, send_password_reset_otp
+from services.email_service import EmailDeliveryError, send_admin_action_otp, send_admin_credentials, send_password_reset_otp
 
 
 def normalize_utc_datetime(value: datetime) -> datetime:
@@ -121,7 +121,14 @@ async def request_admin_create_otp(*, current_email: str, name: str, email: str)
         otp=otp,
         payload={"name": name, "email": email},
     )
-    await send_admin_action_otp(current_email, otp, "creating a new admin account")
+    try:
+        await send_admin_action_otp(current_email, otp, "creating a new admin account")
+    except EmailDeliveryError as exc:
+        await get_otp_collection().delete_many({"email": current_email, "purpose": "admin_create"})
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to send the admin creation OTP email right now.",
+        ) from exc
 
 
 async def confirm_admin_create(*, current_email: str, email: str, otp: str) -> UserResponse:
@@ -136,7 +143,14 @@ async def confirm_admin_create(*, current_email: str, email: str, otp: str) -> U
         password=password,
         role=UserRole.admin,
     )
-    await send_admin_credentials(payload["email"], payload["name"], password)
+    try:
+        await send_admin_credentials(payload["email"], payload["name"], password)
+    except EmailDeliveryError as exc:
+        await get_admin_collection().delete_one({"email": payload["email"]})
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Admin account email could not be delivered, so the account was not created.",
+        ) from exc
     await get_otp_collection().delete_many({"email": current_email, "purpose": "admin_create"})
     return admin
 
@@ -154,7 +168,14 @@ async def request_admin_delete_otp(*, current_email: str, target_email: str):
         otp=otp,
         payload={"target_email": target_email},
     )
-    await send_admin_action_otp(current_email, otp, f"deleting admin account {target_email}")
+    try:
+        await send_admin_action_otp(current_email, otp, f"deleting admin account {target_email}")
+    except EmailDeliveryError as exc:
+        await get_otp_collection().delete_many({"email": current_email, "purpose": "admin_delete"})
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to send the admin deletion OTP email right now.",
+        ) from exc
 
 
 async def confirm_admin_delete(*, current_email: str, target_email: str, otp: str):
@@ -176,7 +197,14 @@ async def request_admin_update_otp(*, current_email: str, target_email: str, new
         otp=otp,
         payload={"target_email": target_email},
     )
-    await send_admin_action_otp(current_email, otp, f"updating admin credentials for {target_email}")
+    try:
+        await send_admin_action_otp(current_email, otp, f"updating admin credentials for {target_email}")
+    except EmailDeliveryError as exc:
+        await get_otp_collection().delete_many({"email": current_email, "purpose": "admin_update"})
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to send the admin update OTP email right now.",
+        ) from exc
 
 
 async def confirm_admin_update(
@@ -337,7 +365,14 @@ async def create_password_reset_otp(email: str):
             "expires_at": expires_at,
         }
     )
-    await send_password_reset_otp(email, otp)
+    try:
+        await send_password_reset_otp(email, otp)
+    except EmailDeliveryError as exc:
+        await get_otp_collection().delete_many({"email": email, "purpose": "forgot_password"})
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to send the password reset OTP email right now.",
+        ) from exc
 
 
 async def verify_password_reset_otp(email: str, otp: str):

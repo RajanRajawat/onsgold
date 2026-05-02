@@ -293,6 +293,7 @@ async def report_bug(
             subject=f"[Bug Report] {report.title} - Severity: {report.severity}",
             body=body,
             attachments=attachments,
+            fail_silently=True,
         )
     await log_activity(
         action="BUG_REPORTED",

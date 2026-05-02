@@ -699,16 +699,6 @@ function logout() {
   showLogin();
 }
 
-async function fetchPublicSummaryForLogin() {
-  try {
-    const summary = await fetch(API_BASE + "/dashboard/login-summary").then(res => res.ok ? res.json() : null);
-    if (!summary) return;
-    document.getElementById("lv-products").textContent = summary.total_products;
-    document.getElementById("lv-orders").textContent = summary.total_orders;
-    document.getElementById("lv-custom").textContent = summary.total_custom_requests;
-  } catch (_) {}
-}
-
 async function login() {
   const email = document.getElementById("l-email").value.trim();
   const password = document.getElementById("l-password").value;
@@ -1936,7 +1926,6 @@ document.getElementById("sidebar-overlay").addEventListener("click", () => setSi
 
 (async function boot() {
   setLogoutIcon();
-  await fetchPublicSummaryForLogin();
   if (token) {
     try {
       await fetchCurrentUser();

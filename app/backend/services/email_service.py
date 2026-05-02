@@ -1,5 +1,7 @@
 import asyncio
 import smtplib
+import socket
+import ssl
 from email.message import EmailMessage
 from typing import TypedDict
 
@@ -14,6 +16,10 @@ class EmailAttachment(TypedDict):
     filename: str
     content: bytes
     mime_type: str
+
+
+class EmailDeliveryError(RuntimeError):
+    pass
 
 
 async def get_super_admin_emails() -> list[str]:
@@ -33,15 +39,38 @@ async def get_super_admin_emails() -> list[str]:
     return emails
 
 
-def send_email_sync(*, recipients: list[str], subject: str, body: str, attachments: list[EmailAttachment] | None = None):
+def _normalize_recipients(recipients: list[str]) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for recipient in recipients:
+        email = str(recipient or "").strip().lower()
+        if not email or email in seen:
+            continue
+        seen.add(email)
+        normalized.append(email)
+    return normalized
+
+
+def send_email_sync(
+    *,
+    recipients: list[str],
+    subject: str,
+    body: str,
+    attachments: list[EmailAttachment] | None = None,
+    fail_silently: bool = False,
+):
     settings = get_settings()
+    recipients = _normalize_recipients(recipients)
     if not recipients:
         logger.info("Skipping email: no super admin recipients configured")
         return
 
     if not settings.smtp_host or not settings.smtp_from_email:
-        logger.info("SMTP not configured. Email subject=%s recipients=%s\n%s", subject, recipients, body)
-        return
+        message = "SMTP is not configured."
+        logger.error("%s Email subject=%s recipients=%s", message, subject, recipients)
+        if fail_silently:
+            return
+        raise EmailDeliveryError(message)
 
     message = EmailMessage()
     message["Subject"] = subject
@@ -57,17 +86,32 @@ def send_email_sync(*, recipients: list[str], subject: str, body: str, attachmen
             filename=attachment["filename"],
         )
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-        if settings.smtp_use_tls:
-            server.starttls()
-        if settings.smtp_username and settings.smtp_password:
-            server.login(settings.smtp_username, settings.smtp_password)
-        server.send_message(message)
+    try:
+        if settings.smtp_port == 465 and not settings.smtp_use_tls:
+            with smtplib.SMTP_SSL(settings.smtp_host, settings.smtp_port, timeout=20, context=ssl.create_default_context()) as server:
+                if settings.smtp_username and settings.smtp_password:
+                    server.login(settings.smtp_username, settings.smtp_password)
+                server.send_message(message)
+        else:
+            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=20) as server:
+                server.ehlo()
+                if settings.smtp_use_tls:
+                    server.starttls(context=ssl.create_default_context())
+                    server.ehlo()
+                if settings.smtp_username and settings.smtp_password:
+                    server.login(settings.smtp_username, settings.smtp_password)
+                server.send_message(message)
+        logger.info("Email sent successfully subject=%s recipients=%s", subject, recipients)
+    except (smtplib.SMTPException, OSError, socket.timeout) as exc:
+        logger.exception("Email delivery failed subject=%s recipients=%s", subject, recipients)
+        if fail_silently:
+            return
+        raise EmailDeliveryError("Unable to deliver email with the configured SMTP settings.") from exc
 
 
 async def notify_super_admins(subject: str, body: str):
     recipients = await get_super_admin_emails()
-    await asyncio.to_thread(send_email_sync, recipients=recipients, subject=subject, body=body)
+    await asyncio.to_thread(send_email_sync, recipients=recipients, subject=subject, body=body, fail_silently=True)
 
 
 async def send_password_reset_otp(email: str, otp: str):
