@@ -197,6 +197,7 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
     now = utc_now()
     customer_name = payload.customer_name or "Not provided"
     phone = payload.phone or "Not provided"
+    should_persist = bool(payload.phone)
     document = {
         "inquiry_id": inquiry_id,
         "customer_name": customer_name,
@@ -209,9 +210,12 @@ async def create_order(payload: OrderCreateRequest) -> OrderResponse:
         "created_at": now,
         "updated_at": now,
     }
-    result = await get_order_collection().insert_one(document)
-    document["_id"] = result.inserted_id
-    invalidate_dashboard_cache()
+    if should_persist:
+        result = await get_order_collection().insert_one(document)
+        document["_id"] = result.inserted_id
+        invalidate_dashboard_cache()
+    else:
+        document["_id"] = inquiry_id
 
     body = "\n".join(
         [
@@ -314,6 +318,20 @@ async def update_custom_request_status(request_id: str, status_value: str):
         {"$set": {"status": status_value, "updated_at": utc_now()}},
     )
     if result.matched_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom order request not found.")
+    invalidate_dashboard_cache()
+
+
+async def delete_order(inquiry_id: str):
+    result = await get_order_collection().delete_one({"inquiry_id": inquiry_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
+    invalidate_dashboard_cache()
+
+
+async def delete_custom_request(request_id: str):
+    result = await get_custom_request_collection().delete_one({"request_id": request_id})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom order request not found.")
     invalidate_dashboard_cache()
 

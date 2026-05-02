@@ -248,6 +248,18 @@ function orderSourceBadge(source) {
   return `<span class="order-source-badge">${stockLabel(source)}</span>`;
 }
 
+function orderDeleteIcon() {
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 3h6"></path>
+      <path d="M4 7h16"></path>
+      <path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"></path>
+      <path d="M10 11v6"></path>
+      <path d="M14 11v6"></path>
+    </svg>
+  `;
+}
+
 function formatDateTime(value) {
   const parsed = parseApiDate(value);
   return parsed ? parsed.toLocaleString() : "-";
@@ -269,6 +281,21 @@ function readPositiveNumberInput(id, label) {
     throw new Error(`${label} must be a valid number greater than 0.`);
   }
   return value;
+}
+
+function formatWeightDisplay(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0
+    ? new Intl.NumberFormat("en-IN", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    }).format(numeric)
+    : "0.000";
+}
+
+function formatWeightInputValue(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric.toFixed(3) : "";
 }
 
 function formatActionLabel(action) {
@@ -835,7 +862,7 @@ function renderProducts(list) {
       <td>${product.category}</td>
       <td>${stockLabel(product.metal)}</td>
       <td>${product.purity}</td>
-      <td>${product.weight} g</td>
+      <td>${formatWeightDisplay(product.weight)} g</td>
       <td>${stockLabel(product.stock_status)}</td>
       <td>
         <button class="btn-sm btn-outline" data-edit="${product.product_id}">Edit</button>
@@ -868,7 +895,14 @@ function renderOrders(list) {
         </select>
       </td>
       <td>${formatDateTime(order.created_at)}</td>
-      <td><button class="btn-sm btn-outline order-view-btn" data-order-view="${order.order_ref}" data-order-kind="${order.order_kind}">View</button></td>
+      <td>
+        <div class="order-action-group">
+          <button class="btn-sm btn-outline order-view-btn" data-order-view="${order.order_ref}" data-order-kind="${order.order_kind}">View</button>
+          <button class="btn-card-delete order-delete-btn" data-order-delete="${order.order_ref}" data-order-kind="${order.order_kind}" title="Delete order" aria-label="Delete order">
+            ${orderDeleteIcon()}
+          </button>
+        </div>
+      </td>
     </tr>
   `).join("");
   tbody.querySelectorAll("[data-order-status]").forEach(select => {
@@ -876,6 +910,9 @@ function renderOrders(list) {
   });
   tbody.querySelectorAll("[data-order-view]").forEach(button => {
     button.addEventListener("click", () => openOrderDetailModal(button.dataset.orderView, button.dataset.orderKind));
+  });
+  tbody.querySelectorAll("[data-order-delete]").forEach(button => {
+    button.addEventListener("click", () => deleteOrderFromTable(button.dataset.orderDelete, button.dataset.orderKind, button));
   });
   updateOrdersPagination(list.length);
 }
@@ -969,7 +1006,7 @@ function openProductDetailModal(productId) {
   categorySelect.value = product.category;
   document.getElementById("pdm-product-metal").value = product.metal || "gold";
   document.getElementById("pdm-product-purity").value = product.purity;
-  document.getElementById("pdm-product-weight").value = product.weight;
+  document.getElementById("pdm-product-weight").value = formatWeightInputValue(product.weight);
   document.getElementById("pdm-product-stock").value = product.stock_status;
   document.getElementById("pdm-product-tags").value = (product.tags || []).join(", ");
   document.getElementById("pdm-product-description").value = product.description;
@@ -1498,6 +1535,26 @@ async function updateAdminOrderStatus(orderKind, orderId, status) {
     await loadDashboardData();
   } catch (error) {
     showToast(error.message, "error");
+  }
+}
+
+async function deleteOrderFromTable(orderRef, orderKind, button) {
+  if (!orderRef || !orderKind) return;
+  const kindLabel = orderKind === "custom_order" ? "custom order request" : "catalog order";
+  if (!confirm(`Delete ${kindLabel} ${orderRef}?`)) return;
+  const stopLoading = setButtonLoading(button, "...");
+  try {
+    const route = orderKind === "custom_order"
+      ? `/admin/custom-requests/${orderRef}`
+      : `/admin/orders/${orderRef}`;
+    await api(route, "DELETE");
+    showToast(`${orderKind === "custom_order" ? "Custom order request" : "Catalog order"} deleted.`, "success");
+    closeOrderDetailModal();
+    await loadDashboardData();
+  } catch (error) {
+    showToast(error.message, "error");
+  } finally {
+    stopLoading(orderDeleteIcon());
   }
 }
 

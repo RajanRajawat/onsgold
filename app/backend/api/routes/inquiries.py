@@ -19,6 +19,8 @@ from services.inquiry_service import (
     add_order_comment,
     create_custom_request,
     create_order,
+    delete_custom_request,
+    delete_order,
     export_orders_csv,
     list_custom_requests,
     list_orders,
@@ -35,18 +37,19 @@ async def create_order_route(
     _: None = Depends(rate_limit("orders")),
 ):
     order = await create_order(payload)
-    await log_activity(
-        action="CATALOG_ORDER_CREATED",
-        performed_by_email=order.phone,
-        performed_by_name=order.customer_name,
-        target=order.inquiry_id,
-        detail=f"Catalog order created by {order.customer_name}.",
-        new_value={
-            "customer_name": order.customer_name,
-            "phone": order.phone,
-            "products": [item.model_dump() for item in payload.products],
-        },
-    )
+    if payload.phone:
+        await log_activity(
+            action="CATALOG_ORDER_CREATED",
+            performed_by_email=order.phone,
+            performed_by_name=order.customer_name,
+            target=order.inquiry_id,
+            detail=f"Catalog order created by {order.customer_name}.",
+            new_value={
+                "customer_name": order.customer_name,
+                "phone": order.phone,
+                "products": [item.model_dump() for item in payload.products],
+            },
+        )
     return order
 
 
@@ -159,6 +162,38 @@ async def add_order_comment_route(
         new_value={"comment": payload.comment},
     )
     return MessageResponse(message="Comment added.")
+
+
+@router.delete("/admin/orders/{inquiry_id}", response_model=MessageResponse)
+async def delete_order_route(
+    inquiry_id: str,
+    current_admin: dict = Depends(require_roles([UserRole.super_admin.value, UserRole.admin.value])),
+):
+    await delete_order(inquiry_id)
+    await log_activity(
+        action="CATALOG_ORDER_DELETED",
+        performed_by_email=current_admin.get("email", ""),
+        performed_by_name=current_admin.get("name", ""),
+        target=inquiry_id,
+        detail=f"Catalog order deleted: {inquiry_id}.",
+    )
+    return MessageResponse(message="Order deleted.")
+
+
+@router.delete("/admin/custom-requests/{request_id}", response_model=MessageResponse)
+async def delete_custom_request_route(
+    request_id: str,
+    current_admin: dict = Depends(require_roles([UserRole.super_admin.value, UserRole.admin.value])),
+):
+    await delete_custom_request(request_id)
+    await log_activity(
+        action="CUSTOM_ORDER_DELETED",
+        performed_by_email=current_admin.get("email", ""),
+        performed_by_name=current_admin.get("name", ""),
+        target=request_id,
+        detail=f"Custom order request deleted: {request_id}.",
+    )
+    return MessageResponse(message="Custom order request deleted.")
 
 
 @router.get("/admin/orders/export")

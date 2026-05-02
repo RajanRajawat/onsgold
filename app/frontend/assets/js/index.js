@@ -87,9 +87,19 @@ function formatProductPrice(product) {
   return `INR ${Number(product.price).toLocaleString("en-IN")}`;
 }
 
+function formatWeightValue(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0
+    ? new Intl.NumberFormat("en-IN", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    }).format(numeric)
+    : "";
+}
+
 function formatProductWeight(product) {
-  const value = Number(product?.weight);
-  return Number.isFinite(value) && value > 0 ? `${value.toLocaleString("en-IN")} g` : "";
+  const formatted = formatWeightValue(product?.weight);
+  return formatted ? `${formatted} g` : "";
 }
 
 function truncate(value, maxLength) {
@@ -659,7 +669,7 @@ function renderProducts() {
             <div class="product-meta">
               <span class="pill">${escapeHtml(product.product_id)}</span>
               <span class="pill">${escapeHtml(stockLabel(product.metal))}</span>
-              <span class="pill">${Number(product.weight).toLocaleString("en-IN")} g</span>
+              <span class="pill">${formatWeightValue(product.weight) || "0.000"} g</span>
               <span class="pill">${escapeHtml(stockLabel(product.stock_status))}</span>
             </div>
           </div>
@@ -788,7 +798,7 @@ function openProductModal(productId) {
   qs("#modal-category").textContent = product.category || "-";
   qs("#modal-metal").textContent = stockLabel(product.metal);
   qs("#modal-purity").textContent = product.purity || "-";
-  qs("#modal-weight").textContent = `${Number(product.weight || 0).toLocaleString("en-IN")} g`;
+  qs("#modal-weight").textContent = `${formatWeightValue(product.weight || 0) || "0.000"} g`;
   qs("#modal-stock").textContent = stockLabel(product.stock_status);
   qs("#modal-tags").innerHTML = (product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
 
