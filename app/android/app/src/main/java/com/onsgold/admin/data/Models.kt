@@ -28,15 +28,6 @@ data class UserResponse(
 )
 
 @Serializable
-data class AnalyticsResponse(
-    @SerialName("total_products") val totalProducts: Int,
-    @SerialName("total_orders") val totalOrders: Int,
-    @SerialName("total_custom_requests") val totalCustomRequests: Int,
-    @SerialName("new_orders") val newOrders: Int,
-    @SerialName("featured_products") val featuredProducts: Int,
-)
-
-@Serializable
 data class ProductResponse(
     val id: String,
     @SerialName("product_id") val productId: String,
@@ -51,7 +42,6 @@ data class ProductResponse(
     val images: List<String>,
     @SerialName("stock_status") val stockStatus: String,
     val tags: List<String> = emptyList(),
-    val featured: Boolean = false,
     val slug: String,
     @SerialName("created_at") val createdAt: String,
     @SerialName("updated_at") val updatedAt: String,
@@ -182,7 +172,6 @@ data class ProductPayload(
     val images: List<String>,
     @SerialName("stock_status") val stockStatus: String,
     val tags: List<String>,
-    val featured: Boolean = false,
 )
 
 @Serializable
@@ -251,11 +240,6 @@ data class BugReportPayload(
 @Serializable
 data class UploadResponse(
     val urls: List<String>,
-)
-
-data class DashboardBundle(
-    val summary: AnalyticsResponse,
-    val orders: List<AdminOrderItem>,
 )
 
 data class AdminOrderItem(

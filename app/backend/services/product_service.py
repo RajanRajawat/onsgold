@@ -15,7 +15,7 @@ from services.cloudinary_service import delete_images_by_urls
 
 _RANDOM_PRODUCTS_CACHE_TTL_SECONDS = 30
 _PRODUCT_LIST_CACHE_TTL_SECONDS = 20
-_random_products_cache: dict[tuple[int, bool | None], dict[str, float | list[ProductResponse] | int]] = {}
+_random_products_cache: dict[int, dict[str, float | list[ProductResponse] | int]] = {}
 _product_list_cache: dict[tuple[Any, ...], dict[str, float | list[ProductResponse] | int]] = {}
 
 
@@ -49,7 +49,6 @@ def serialize_product(document: dict) -> ProductResponse:
         images=document["images"],
         stock_status=document["stock_status"],
         tags=document.get("tags", []),
-        featured=document.get("featured", False),
         slug=document["slug"],
         created_at=document["created_at"],
         updated_at=document["updated_at"],
@@ -139,7 +138,6 @@ async def list_products(
     search: str | None,
     latest: bool,
     sort: str,
-    featured: bool | None,
     page: int,
     page_size: int,
 ):
@@ -155,7 +153,6 @@ async def list_products(
         search,
         latest,
         sort,
-        featured,
         page,
         page_size,
     )
@@ -187,8 +184,6 @@ async def list_products(
             query["price"]["$gte"] = min_price
         if max_price is not None:
             query["price"]["$lte"] = max_price
-    if featured is not None:
-        query["featured"] = featured
     if search:
         query["$or"] = [
             {"title": {"$regex": re.escape(search), "$options": "i"}},
@@ -197,7 +192,6 @@ async def list_products(
         ]
 
     sort_options = {
-        "featured": [("featured", DESCENDING), ("created_at", DESCENDING)],
         "latest": [("created_at", DESCENDING)],
         "title_asc": [("title", ASCENDING)],
         "title_desc": [("title", DESCENDING)],
@@ -206,8 +200,8 @@ async def list_products(
         "price_asc": [("price", ASCENDING)],
         "price_desc": [("price", DESCENDING)],
     }
-    sort_key = "latest" if latest else (sort or "featured")
-    mongo_sort = sort_options.get(sort_key, sort_options["featured"])
+    sort_key = "latest" if latest else (sort or "latest")
+    mongo_sort = sort_options.get(sort_key, sort_options["latest"])
     skip = (page - 1) * page_size
     total = await get_product_collection().count_documents(query)
     documents = await get_product_collection().find(query).sort(mongo_sort).skip(skip).limit(page_size).to_list(page_size)
@@ -220,8 +214,8 @@ async def list_products(
     return items, total
 
 
-async def list_random_products(*, limit: int, featured: bool | None = None):
-    cache_key = (limit, featured)
+async def list_random_products(*, limit: int):
+    cache_key = limit
     cached = _random_products_cache.get(cache_key)
     now = monotonic()
     if cached and now < float(cached.get("expires_at") or 0.0):
@@ -230,8 +224,6 @@ async def list_random_products(*, limit: int, featured: bool | None = None):
         return cached_items, cached_total
 
     query: dict[str, Any] = {}
-    if featured is not None:
-        query["featured"] = featured
 
     total = await get_product_collection().count_documents(query)
     if total == 0:

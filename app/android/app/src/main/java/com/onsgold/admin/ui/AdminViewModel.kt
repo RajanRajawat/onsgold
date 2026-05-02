@@ -8,7 +8,6 @@ import com.onsgold.admin.data.ActivityLogResponse
 import com.onsgold.admin.data.AdminListItem
 import com.onsgold.admin.data.AdminOrderItem
 import com.onsgold.admin.data.AdminRepository
-import com.onsgold.admin.data.AnalyticsResponse
 import com.onsgold.admin.data.ProductListResponse
 import com.onsgold.admin.data.ProductPayload
 import com.onsgold.admin.data.ProductResponse
@@ -114,7 +113,7 @@ class AdminViewModel(
     }
 
     fun refreshAll() {
-        loadDashboard()
+        loadOrders()
         loadProducts(_uiState.value.productPage, _uiState.value.productSearch, silent = false)
         if (isSuperAdmin()) {
             loadAdmins()
@@ -122,19 +121,18 @@ class AdminViewModel(
         }
     }
 
-    fun loadDashboard() {
+    fun loadOrders() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(dashboardLoading = true)
+            _uiState.value = _uiState.value.copy(ordersLoading = true)
             runCatching {
-                repository.loadDashboard()
-            }.onSuccess { bundle ->
+                repository.loadOrders()
+            }.onSuccess {
                 _uiState.value = _uiState.value.copy(
-                    dashboardLoading = false,
-                    summary = bundle.summary,
-                    orders = bundle.orders,
+                    ordersLoading = false,
+                    orders = it,
                 )
             }.onFailure {
-                _uiState.value = _uiState.value.copy(dashboardLoading = false)
+                _uiState.value = _uiState.value.copy(ordersLoading = false)
                 emitEvent(it.toUserMessage())
             }
         }
@@ -164,7 +162,7 @@ class AdminViewModel(
                 repository.createProduct(payload, images)
             }.onSuccess {
                 emitEvent("Product created successfully.")
-                loadDashboard()
+                loadOrders()
                 loadProducts(page = 1, search = _uiState.value.productSearch)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
@@ -179,7 +177,7 @@ class AdminViewModel(
                 repository.updateProduct(productId, payload, images)
             }.onSuccess {
                 emitEvent("Product updated.")
-                loadDashboard()
+                loadOrders()
                 loadProducts(page = _uiState.value.productPage, search = _uiState.value.productSearch)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
@@ -194,7 +192,7 @@ class AdminViewModel(
                 repository.deleteProduct(productId)
             }.onSuccess {
                 emitEvent(it)
-                loadDashboard()
+                loadOrders()
                 loadProducts(page = _uiState.value.productPage, search = _uiState.value.productSearch)
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
@@ -267,7 +265,7 @@ class AdminViewModel(
                 repository.updateOrderStatus(orderRef, orderKind, status)
             }.onSuccess {
                 emitEvent(it)
-                loadDashboard()
+                loadOrders()
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
                 emitEvent(it.toUserMessage())
@@ -281,7 +279,7 @@ class AdminViewModel(
                 repository.addOrderComment(orderRef, orderKind, comment)
             }.onSuccess {
                 emitEvent(it)
-                loadDashboard()
+                loadOrders()
             }.onFailure {
                 emitEvent(it.toUserMessage())
             }
@@ -294,7 +292,7 @@ class AdminViewModel(
                 repository.deleteOrder(orderRef, orderKind)
             }.onSuccess {
                 emitEvent(it)
-                loadDashboard()
+                loadOrders()
                 if (isSuperAdmin()) loadActivityLogs()
             }.onFailure {
                 emitEvent(it.toUserMessage())
@@ -355,20 +353,6 @@ class AdminViewModel(
         }
     }
 
-    fun exportOrdersCsv(onResult: (String?) -> Unit) {
-        viewModelScope.launch {
-            runCatching {
-                repository.exportOrdersCsv()
-            }.onSuccess {
-                onResult(it)
-                emitEvent("CSV export ready.")
-            }.onFailure {
-                onResult(null)
-                emitEvent(it.toUserMessage())
-            }
-        }
-    }
-
     private fun applyProducts(result: ProductListResponse) {
         _uiState.value = _uiState.value.copy(
             productsLoading = false,
@@ -413,11 +397,10 @@ data class AdminUiState(
     val isAuthenticated: Boolean = false,
     val authLoading: Boolean = false,
     val currentUser: UserResponse? = null,
-    val dashboardLoading: Boolean = false,
+    val ordersLoading: Boolean = false,
     val productsLoading: Boolean = false,
     val adminsLoading: Boolean = false,
     val activityLoading: Boolean = false,
-    val summary: AnalyticsResponse? = null,
     val orders: List<AdminOrderItem> = emptyList(),
     val products: List<ProductResponse> = emptyList(),
     val productSearch: String = "",

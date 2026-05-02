@@ -31,7 +31,6 @@ class ProductBase(BaseModel):
     images: list[str] = Field(default_factory=list, min_length=1)
     stock_status: StockStatus = StockStatus.in_stock
     tags: list[str] = Field(default_factory=list)
-    featured: bool = False
 
     @field_validator("title", "category", "description", "purity", mode="before")
     @classmethod
@@ -84,7 +83,6 @@ class ProductUpdate(BaseModel):
     images: list[str] | None = None
     stock_status: StockStatus | None = None
     tags: list[str] | None = None
-    featured: bool | None = None
 
     @field_validator("title", "category", "description", "purity", mode="before")
     @classmethod

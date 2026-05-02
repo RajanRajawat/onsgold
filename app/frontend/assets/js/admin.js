@@ -805,16 +805,14 @@ function restoreOpenProductModal() {
   closeProductDetailModal();
 }
 
-async function loadOverviewAndOrders() {
-  const [summary, orders, customRequests] = await Promise.all([
-    api("/dashboard/summary"),
+async function loadOrdersData() {
+  const [orders, customRequests] = await Promise.all([
     api("/admin/orders"),
     api("/admin/custom-requests"),
   ]);
   allOrders = orders || [];
   allCustomRequests = customRequests || [];
   allAdminOrders = normalizeAdminOrders(allOrders, allCustomRequests);
-  renderOverview(summary, allAdminOrders);
   renderOrders(getFilteredOrders());
   renderRoleBoundPanels();
   if (activeOrderModalRef && activeOrderModalKind) {
@@ -835,7 +833,7 @@ async function refreshActivityLogsIfLoaded() {
 
 async function loadDashboardData() {
   await Promise.all([
-    loadOverviewAndOrders(),
+    loadOrdersData(),
     loadProductsSection(productCurrentPage),
   ]);
   if (activeActivityLogId) {
@@ -860,29 +858,6 @@ async function loadActivityLogsData() {
   if (activeActivityLogId) {
     openActivityLogModal(activeActivityLogId);
   }
-}
-
-function renderOverview(summary, orders) {
-  document.getElementById("overview-stats").innerHTML = `
-    <div class="stat-card stat-blue"><div class="sc-label">Total Products</div><div class="sc-num">${summary.total_products}</div></div>
-    <div class="stat-card stat-warn"><div class="sc-label">Catalog Orders</div><div class="sc-num">${summary.total_orders}</div></div>
-    <div class="stat-card stat-green"><div class="sc-label">Custom Orders</div><div class="sc-num">${summary.total_custom_requests}</div></div>
-    <div class="stat-card stat-red"><div class="sc-label">New Orders</div><div class="sc-num">${summary.new_orders}</div></div>
-  `;
-  const tbody = document.getElementById("overview-orders-body");
-  if (!orders.length) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No orders yet.</div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = orders.slice(0, 5).map(order => `
-    <tr>
-      <td>${order.order_ref}</td>
-      <td>${order.customer_name}<br><small>${order.phone}</small></td>
-      <td>${orderTypeBadge(order.order_kind)}</td>
-      <td>${statusBadge(order.status)}</td>
-      <td>${formatDateTime(order.created_at)}</td>
-    </tr>
-  `).join("");
 }
 
 function renderProducts(list) {
@@ -1001,7 +976,7 @@ function toggleAdminManagementVisibility() {
     adminNavButton.style.display = "none";
     activityNavButton.style.display = "none";
     if (adminPanel.classList.contains("active") || activityPanel.classList.contains("active")) {
-      switchPanel("overview");
+      switchPanel("products");
     }
   }
 }
@@ -1143,7 +1118,6 @@ async function saveProduct(event) {
       stock_status: document.getElementById("product-stock").value,
       tags: document.getElementById("product-tags").value.split(",").map(item => item.trim()).filter(Boolean),
       description: document.getElementById("product-description").value.trim(),
-      featured: false,
       images: uploadedImages,
     };
     if (!payload.images.length) throw new Error("Upload at least one product image.");
@@ -1153,7 +1127,7 @@ async function saveProduct(event) {
     resetProductForm();
     productCurrentPage = 1;
     await Promise.all([
-      loadOverviewAndOrders(),
+      loadOrdersData(),
       loadProductsSection(1),
       refreshActivityLogsIfLoaded(),
     ]);
@@ -1187,7 +1161,6 @@ async function saveProductFromModal(event) {
       stock_status: document.getElementById("pdm-product-stock").value,
       tags: document.getElementById("pdm-product-tags").value.split(",").map(item => item.trim()).filter(Boolean),
       description: document.getElementById("pdm-product-description").value.trim(),
-      featured: false,
       images: uploadedImages.length ? uploadedImages : (currentProduct?.images || []),
     };
     if (!payload.images.length) throw new Error("Upload at least one product image.");
@@ -1195,7 +1168,7 @@ async function saveProductFromModal(event) {
     showToast("Product updated.", "success");
     closeProductDetailModal();
     await Promise.all([
-      loadOverviewAndOrders(),
+      loadOrdersData(),
       loadProductsSection(productCurrentPage),
       refreshActivityLogsIfLoaded(),
     ]);
@@ -1217,7 +1190,7 @@ async function deleteProductFromModal() {
     showToast("Product deleted.", "success");
     closeProductDetailModal();
     await Promise.all([
-      loadOverviewAndOrders(),
+      loadOrdersData(),
       loadProductsSection(productCurrentPage),
       refreshActivityLogsIfLoaded(),
     ]);
@@ -1594,7 +1567,7 @@ async function updateAdminOrderStatus(orderKind, orderId, status) {
     await api(route, "PATCH", { status });
     showToast("Order status updated.", "success");
     await Promise.all([
-      loadOverviewAndOrders(),
+      loadOrdersData(),
       refreshActivityLogsIfLoaded(),
     ]);
   } catch (error) {
@@ -1615,7 +1588,7 @@ async function deleteOrderFromTable(orderRef, orderKind, button) {
     showToast(`${orderKind === "custom_order" ? "Custom order request" : "Catalog order"} deleted.`, "success");
     closeOrderDetailModal();
     await Promise.all([
-      loadOverviewAndOrders(),
+      loadOrdersData(),
       refreshActivityLogsIfLoaded(),
     ]);
   } catch (error) {
@@ -1668,7 +1641,7 @@ async function refreshOrdersData() {
   const stopLoading = setButtonLoading(btn, "Refreshing...");
   try {
     await Promise.all([
-      loadOverviewAndOrders(),
+      loadOrdersData(),
       refreshActivityLogsIfLoaded(),
     ]);
   } finally {
@@ -1754,26 +1727,6 @@ function filterOrders() {
 function filterActivityLogs() {
   activityCurrentPage = 1;
   renderActivityLogs(getFilteredActivityLogs());
-}
-
-async function exportOrdersCsv() {
-  const btn = document.getElementById("export-orders-btn");
-  const stopLoading = setButtonLoading(btn, "Exporting...");
-  try {
-    const response = await fetch(`${API_BASE}/admin/orders/export`, { headers: authHeaders() });
-    if (!response.ok) throw new Error("Unable to export CSV.");
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ons-gold-orders.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    showToast(error.message, "error");
-  } finally {
-    stopLoading();
-  }
 }
 
 function openBugModal() {
@@ -1872,12 +1825,11 @@ async function refreshActivityLogs() {
 
 function switchPanel(panelName) {
   if (!isSuperAdmin() && (panelName === "admins" || panelName === "activity-logs")) {
-    panelName = "overview";
+    panelName = "products";
   }
   document.querySelectorAll(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.panel === panelName));
   document.querySelectorAll(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${panelName}`));
   const labels = {
-    overview: "Overview",
     products: "Products",
     orders: "Orders",
     admins: "Manage Admins",
@@ -2015,8 +1967,6 @@ document.getElementById("adm-save-creds-btn").addEventListener("click", saveAdmi
 document.getElementById("adm-delete-toggle-btn").addEventListener("click", toggleAdminDelete);
 document.getElementById("adm-delete-otp-btn").addEventListener("click", requestModalDeleteOtp);
 document.getElementById("adm-confirm-delete-btn").addEventListener("click", confirmModalDeleteAdmin);
-const exportOrdersButton = document.getElementById("export-orders-btn");
-if (exportOrdersButton) exportOrdersButton.addEventListener("click", exportOrdersCsv);
 document.getElementById("logout-btn").addEventListener("click", () => {
   logout();
 });

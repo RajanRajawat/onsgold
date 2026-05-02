@@ -1,8 +1,6 @@
 package com.onsgold.admin.data
 
 import okhttp3.MultipartBody
-import okhttp3.ResponseBody
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -27,9 +25,6 @@ interface ApiService {
 
     @POST("api/v1/auth/forgot-password/reset")
     suspend fun resetForgotPassword(@Body body: ResetPasswordRequest): MessageResponse
-
-    @GET("api/v1/dashboard/summary")
-    suspend fun dashboardSummary(@Header("Authorization") authorization: String): AnalyticsResponse
 
     @GET("api/v1/admin/orders")
     suspend fun adminOrders(@Header("Authorization") authorization: String): List<OrderResponse>
@@ -176,7 +171,4 @@ interface ApiService {
         @Header("Authorization") authorization: String,
         @Body body: BugReportPayload,
     ): MessageResponse
-
-    @GET("api/v1/admin/orders/export")
-    suspend fun exportOrdersCsv(@Header("Authorization") authorization: String): Response<ResponseBody>
 }

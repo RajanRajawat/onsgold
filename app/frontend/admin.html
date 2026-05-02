@@ -98,11 +98,7 @@
 
       <div class="sidebar-section">
         <div class="sidebar-section-label">Main</div>
-        <button class="nav-item active" data-panel="overview">
-          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-          Overview
-        </button>
-        <button class="nav-item" data-panel="products">
+        <button class="nav-item active" data-panel="products">
           <svg viewBox="0 0 24 24"><path d="M7 4h10l1 2h3v2h-1l-1.68 8.39A2 2 0 0 1 16.36 18H8a2 2 0 0 1-1.96-1.61L4.36 8H3V6h3l1-2zm1.24 2-.5 1h8.52l-.5-1H8.24zM8 20a2 2 0 1 0 0 .01V20zm8 0a2 2 0 1 0 0 .01V20z"/></svg>
           Products
         </button>
@@ -154,7 +150,7 @@
       <div class="topbar">
         <div class="topbar-left">
           <button class="topbar-menu-btn" id="sidebar-toggle-btn" type="button" aria-label="Open navigation">☰</button>
-          <div class="topbar-title" id="topbar-title">Overview</div>
+          <div class="topbar-title" id="topbar-title">Products</div>
         </div>
         <div class="topbar-right">
           <button class="btn-report-bug" id="report-bug-btn" type="button">
@@ -169,42 +165,7 @@
       </div>
 
       <div class="content">
-        <section class="panel active" id="panel-overview">
-          <div class="page-header">
-            <h2>Dashboard Overview</h2>
-            <p>Track products, inquiry volume, new leads, and custom jewelry request activity.</p>
-          </div>
-          <div class="stat-grid" id="overview-stats">
-            <div class="stat-card stat-blue"><div class="sc-label">Total Products</div><div class="sc-num">0</div></div>
-            <div class="stat-card stat-warn"><div class="sc-label">Total Orders</div><div class="sc-num">0</div></div>
-            <div class="stat-card stat-green"><div class="sc-label">Custom Requests</div><div class="sc-num">0</div></div>
-            <div class="stat-card stat-red"><div class="sc-label">New Orders</div><div class="sc-num">0</div></div>
-          </div>
-
-          <div class="table-card">
-            <div class="table-header">
-              <div class="table-title">Recent Orders</div>
-            </div>
-            <div class="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                  </tr>
-                </thead>
-                <tbody id="overview-orders-body">
-                  <tr><td colspan="5"><div class="empty-state">Sign in to load data.</div></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-products">
+        <section class="panel active" id="panel-products">
           <div class="page-header">
             <h2>Product Management</h2>
             <p>Create, edit, and remove wholesale catalog products with multiple image uploads.</p>
@@ -313,7 +274,7 @@
         <section class="panel" id="panel-orders">
           <div class="page-header">
             <h2>Orders</h2>
-            <p>Review all catalog orders and custom order requests in one place, update statuses, and export the order list.</p>
+            <p>Review all catalog orders and custom order requests in one place and keep statuses updated.</p>
           </div>
 
           <div class="table-card">
@@ -322,7 +283,6 @@
               <div class="table-actions">
                 <input class="search-input" id="orders-search" placeholder="Search order, customer, phone, product ID" />
                 <button class="btn-sm btn-outline" id="orders-refresh-btn" type="button">Refresh</button>
-                <button class="btn-sm btn-outline" id="export-orders-btn" type="button">Export CSV</button>
               </div>
             </div>
             <div class="table-scroll">

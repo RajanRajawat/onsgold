@@ -22,8 +22,7 @@ async def get_products(
     max_price: float | None = None,
     search: str | None = None,
     latest: bool = False,
-    sort: str = Query(default="featured"),
-    featured: bool | None = None,
+    sort: str = Query(default="latest"),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=25),
 ):
@@ -39,7 +38,6 @@ async def get_products(
         search=search,
         latest=latest,
         sort=sort,
-        featured=featured,
         page=page,
         page_size=page_size,
     )
@@ -49,9 +47,8 @@ async def get_products(
 @router.get("/random", response_model=ProductListResponse)
 async def get_random_products(
     limit: int = Query(default=9, ge=1, le=18),
-    featured: bool | None = None,
 ):
-    items, total = await list_random_products(limit=limit, featured=featured)
+    items, total = await list_random_products(limit=limit)
     return ProductListResponse(items=items, total=total, page=1, page_size=limit)
 
 

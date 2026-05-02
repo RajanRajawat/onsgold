@@ -1,0 +1,447 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml:2:1-26:12
+MERGED from [com.google.android.material:material:1.12.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\263de931cda79b0a1c159e9ddeb866e4\transformed\material-1.12.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\4f6fde542439d36367f0b36e4d405a26\transformed\constraintlayout-2.0.1\AndroidManifest.xml:2:1-11:12
+MERGED from [io.coil-kt:coil-compose:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b86cbc55bc10b5ba491443c11823491a\transformed\coil-compose-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [io.coil-kt:coil-compose-base:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2c87ba837887cd0fa89ebce2dd954959\transformed\coil-compose-base-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [io.coil-kt:coil:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a4b2d721e8d66b09f5049a6c98a7d6e8\transformed\coil-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [io.coil-kt:coil-base:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a87d047eb77c6e0d334513278aadfe50\transformed\coil-base-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7cf4633d4a7a87b6d90fa0452c3a2492\transformed\appcompat-resources-1.6.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.appcompat:appcompat:1.6.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ba17d545e14bac4c3c298934ef4d575c\transformed\appcompat-1.6.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a624493b8e6461cbc3681fda3c24edd7\transformed\coordinatorlayout-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a5be0288e64ee4e28a01f9e126c9a7af\transformed\drawerlayout-1.1.1\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.transition:transition:1.5.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\afddfbbda78e5103b590dee09393da17\transformed\transition-1.5.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6793c2c7bed6f29f995fcba3bc6db227\transformed\dynamicanimation-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\cb5d4255b491f25777fb68c70cc01de3\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a8d78e89278409e7df12802e19c45a8b\transformed\vectordrawable-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\593bf32d504fcbf32e99b9702cbecb67\transformed\viewpager2-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.compose.material3:material3-android:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\8270eacb209f2b71dd88693e4a568f49\transformed\material3-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6da86dcce9b8ef991a8f7b1896494239\transformed\navigation-common-2.7.7\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-runtime:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9e9f6b3504c0d2c215551e9adfe94edb\transformed\navigation-runtime-2.7.7\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-common-ktx:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0ee2452d3b43134da9497233b4db419c\transformed\navigation-common-ktx-2.7.7\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\59252dfbbbb12b543157e66a7eae771d\transformed\navigation-runtime-ktx-2.7.7\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-compose:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ed14b6a8df7e22c9e2f43a29d753895e\transformed\navigation-compose-2.7.7\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3a5579ffa6bd508d80e3dd29efe5f627\transformed\material-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-core-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\89309c52dffc930ff9cf2374be7e35d9\transformed\material-icons-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-extended-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ac7c312f491c31c20d3e55aa3394b253\transformed\material-icons-extended-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-ripple-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\940d7376094d89eab8d8a8afcebf9e08\transformed\material-ripple-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0414905b40381af755ab1c577f1843b7\transformed\foundation-layout-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-core-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ffb4e1bc675875170e20c4ec05612454\transformed\animation-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\c18cc6f5672af3a3a4b1311a85f0f1ed\transformed\animation-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0329d4d7a0bbf2930c1020856f5be6e1\transformed\ui-tooling-data-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-unit-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b20f927a8ba6f71dd664c36cd7a27bcf\transformed\ui-unit-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-geometry-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2fe6b9f7ee0cd3d8e72e8053d41da9e6\transformed\ui-geometry-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-graphics-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\1173e3ad206cfba67f7f467671cfce1d\transformed\ui-graphics-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-util-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7a16d2ab5f5302399cf234381bfb1c9e\transformed\ui-util-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-text-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\73bd8aef3bded93f9016a3082636bc73\transformed\ui-text-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\29593d946fcc9f03a4b53babbd9c8d3d\transformed\ui-tooling-preview-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.fragment:fragment:1.3.6] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7d95184a6b2c8fcc02441786981bc31f\transformed\fragment-1.3.6\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.activity:activity:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d64fc3f65f1cda9a0c11db4d7d56189c\transformed\activity-1.9.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity-ktx:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b1439c36206e0e574da0d4adac4ca492\transformed\activity-ktx-1.9.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity-compose:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\419da67e38dd5263104e05b5b2ed99fb\transformed\activity-compose-1.9.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\69c47648ae62fd3b666b926e256ac46c\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0106e2662a4f3921ef74b9ccb5d94302\transformed\savedstate-1.2.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\beb1592a37c9326a300e44563a6f240d\transformed\emoji2-views-helper-1.3.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\48ee4f25b3a0770ea067bd82186a5bcd\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\10e2ecf74dcf2abf93d42a2ffe026132\transformed\loader-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a6870d70ae99f4757830995e2457d125\transformed\lifecycle-livedata-core-ktx-2.8.3\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\1ad46aa1459e4377de20bc031959f9fa\transformed\lifecycle-livedata-2.8.3\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7619eb10aed48f8bf221a50ea3b48bcf\transformed\lifecycle-livedata-core-2.8.3\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\8aeaff9434f55955e5e0275e9fa3e1ec\transformed\lifecycle-viewmodel-2.8.3\AndroidManifest.xml:2:1-5:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3e9974483f8a2887d423f669a561ab68\transformed\lifecycle-viewmodel-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\005fcefd0464c7df2e8c17c19bc4de57\transformed\lifecycle-runtime-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0cf93ccfd446f4eddc58101cbf2c54c2\transformed\lifecycle-viewmodel-ktx-2.8.3\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\23f83a0b357543e41ec4b9ce68905399\transformed\lifecycle-viewmodel-savedstate-2.8.3\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3daeadd7c1c5221068eff61a9625cb28\transformed\lifecycle-runtime-ktx-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\83fab852e6aed22c8a7d4b562e130416\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.accompanist:accompanist-drawablepainter:0.32.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9e74b752ccdca79da51d2c3103d8d945\transformed\accompanist-drawablepainter-0.32.0\AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.compose.ui:ui-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\f127d3379b8dfe5046fb5982d8bf2dcc\transformed\ui-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\39bb92aa90a8535e005e719ac6fc8cd5\transformed\foundation-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2a67436ffc1aeb55c8634c454b25c7d0\transformed\recyclerview-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2ba7ba841e7fcc7e21e7b067ae5a0ba7\transformed\viewpager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0197b01e990628be0c3e9030b6faf491\transformed\customview-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.autofill:autofill:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2ed1771c7227a90cb06ab9e5b893385d\transformed\autofill-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7cb20eba6fb38be7b20591e14223d7a9\transformed\customview-poolingcontainer-1.0.0\AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6097c40d15dacfe391328b83a62aa05b\transformed\core-ktx-1.13.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-core-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6fa30fb36bd9b6a15bdb366a9741b71e\transformed\datastore-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e95c4cace1dacb8cf2a70804937088ef\transformed\datastore-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\5e4e8699cd8d364cf0814b466ccc025b\transformed\datastore-preferences-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9dee8940401f09c9f08ca837e3593b52\transformed\runtime-saveable-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.runtime:runtime-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\de4e51d5ea5091592e707490acc496d1\transformed\runtime-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e45c4ea1351ac944c4cc21b76600c459\transformed\annotation-experimental-1.4.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.cardview:cardview:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a0c0844022f25aaade5c7d132447c938\transformed\cardview-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\75190966ea2e091ecc66e3f677e6b6ce\transformed\interpolator-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d22133532aa5be71d0b5a43eca5ef57b\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\5b9e88f52d6ef2206536712523d392e4\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ce4bc897732af5e850922a34b628cfe8\transformed\tracing-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\f587e6ef21aa4ba8d3416cc42186f7da\transformed\documentfile-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\265ccf1c02d816e7f990c29b6ba3391a\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7817dbf4db388b08fe091e0bc6db0c4d\transformed\print-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e582f2ee23f09a9207cb855b8fa9944b\transformed\exifinterface-1.3.7\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\626a298716f733f0fd241d76f665ea07\transformed\core-runtime-2.2.0\AndroidManifest.xml:17:1-22:12
+	package
+		INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+	android:versionCode
+		INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:4:5-67
+	android:name
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:4:22-64
+uses-permission#android.permission.READ_MEDIA_IMAGES
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:5:5-76
+	android:name
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:5:22-73
+application
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:7:5-24:19
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml:7:5-24:19
+MERGED from [com.google.android.material:material:1.12.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\263de931cda79b0a1c159e9ddeb866e4\transformed\material-1.12.0\AndroidManifest.xml:22:5-20
+MERGED from [com.google.android.material:material:1.12.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\263de931cda79b0a1c159e9ddeb866e4\transformed\material-1.12.0\AndroidManifest.xml:22:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\4f6fde542439d36367f0b36e4d405a26\transformed\constraintlayout-2.0.1\AndroidManifest.xml:9:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\4f6fde542439d36367f0b36e4d405a26\transformed\constraintlayout-2.0.1\AndroidManifest.xml:9:5-20
+MERGED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:28:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d22133532aa5be71d0b5a43eca5ef57b\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d22133532aa5be71d0b5a43eca5ef57b\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
+	android:extractNativeLibs
+		INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:12:9-35
+	android:label
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:10:9-39
+	android:roundIcon
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:11:9-43
+	android:icon
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:9:9-38
+	android:allowBackup
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:8:9-35
+	android:theme
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:13:9-50
+activity#com.onsgold.admin.MainActivity
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:14:9-23:20
+	android:windowSoftInputMode
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:17:13-55
+	android:exported
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:16:13-36
+	android:name
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:15:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:18:13-22:29
+action#android.intent.action.MAIN
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:19:17-69
+	android:name
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:19:25-66
+category#android.intent.category.LAUNCHER
+ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:21:17-77
+	android:name
+		ADDED from D:\ons\app\android\app\src\main\AndroidManifest.xml:21:27-74
+uses-sdk
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+MERGED from [com.google.android.material:material:1.12.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\263de931cda79b0a1c159e9ddeb866e4\transformed\material-1.12.0\AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.12.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\263de931cda79b0a1c159e9ddeb866e4\transformed\material-1.12.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\4f6fde542439d36367f0b36e4d405a26\transformed\constraintlayout-2.0.1\AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\4f6fde542439d36367f0b36e4d405a26\transformed\constraintlayout-2.0.1\AndroidManifest.xml:5:5-7:41
+MERGED from [io.coil-kt:coil-compose:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b86cbc55bc10b5ba491443c11823491a\transformed\coil-compose-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil-compose:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b86cbc55bc10b5ba491443c11823491a\transformed\coil-compose-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil-compose-base:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2c87ba837887cd0fa89ebce2dd954959\transformed\coil-compose-base-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil-compose-base:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2c87ba837887cd0fa89ebce2dd954959\transformed\coil-compose-base-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a4b2d721e8d66b09f5049a6c98a7d6e8\transformed\coil-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a4b2d721e8d66b09f5049a6c98a7d6e8\transformed\coil-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil-base:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a87d047eb77c6e0d334513278aadfe50\transformed\coil-base-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [io.coil-kt:coil-base:2.7.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a87d047eb77c6e0d334513278aadfe50\transformed\coil-base-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7cf4633d4a7a87b6d90fa0452c3a2492\transformed\appcompat-resources-1.6.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.6.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7cf4633d4a7a87b6d90fa0452c3a2492\transformed\appcompat-resources-1.6.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.6.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ba17d545e14bac4c3c298934ef4d575c\transformed\appcompat-1.6.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat:1.6.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ba17d545e14bac4c3c298934ef4d575c\transformed\appcompat-1.6.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a624493b8e6461cbc3681fda3c24edd7\transformed\coordinatorlayout-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a624493b8e6461cbc3681fda3c24edd7\transformed\coordinatorlayout-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a5be0288e64ee4e28a01f9e126c9a7af\transformed\drawerlayout-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a5be0288e64ee4e28a01f9e126c9a7af\transformed\drawerlayout-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.5.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\afddfbbda78e5103b590dee09393da17\transformed\transition-1.5.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.transition:transition:1.5.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\afddfbbda78e5103b590dee09393da17\transformed\transition-1.5.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6793c2c7bed6f29f995fcba3bc6db227\transformed\dynamicanimation-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6793c2c7bed6f29f995fcba3bc6db227\transformed\dynamicanimation-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\cb5d4255b491f25777fb68c70cc01de3\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\cb5d4255b491f25777fb68c70cc01de3\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a8d78e89278409e7df12802e19c45a8b\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a8d78e89278409e7df12802e19c45a8b\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\593bf32d504fcbf32e99b9702cbecb67\transformed\viewpager2-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\593bf32d504fcbf32e99b9702cbecb67\transformed\viewpager2-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.compose.material3:material3-android:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\8270eacb209f2b71dd88693e4a568f49\transformed\material3-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material3:material3-android:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\8270eacb209f2b71dd88693e4a568f49\transformed\material3-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6da86dcce9b8ef991a8f7b1896494239\transformed\navigation-common-2.7.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6da86dcce9b8ef991a8f7b1896494239\transformed\navigation-common-2.7.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9e9f6b3504c0d2c215551e9adfe94edb\transformed\navigation-runtime-2.7.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9e9f6b3504c0d2c215551e9adfe94edb\transformed\navigation-runtime-2.7.7\AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common-ktx:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0ee2452d3b43134da9497233b4db419c\transformed\navigation-common-ktx-2.7.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-common-ktx:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0ee2452d3b43134da9497233b4db419c\transformed\navigation-common-ktx-2.7.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\59252dfbbbb12b543157e66a7eae771d\transformed\navigation-runtime-ktx-2.7.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\59252dfbbbb12b543157e66a7eae771d\transformed\navigation-runtime-ktx-2.7.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-compose:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ed14b6a8df7e22c9e2f43a29d753895e\transformed\navigation-compose-2.7.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-compose:2.7.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ed14b6a8df7e22c9e2f43a29d753895e\transformed\navigation-compose-2.7.7\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3a5579ffa6bd508d80e3dd29efe5f627\transformed\material-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3a5579ffa6bd508d80e3dd29efe5f627\transformed\material-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\89309c52dffc930ff9cf2374be7e35d9\transformed\material-icons-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\89309c52dffc930ff9cf2374be7e35d9\transformed\material-icons-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-extended-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ac7c312f491c31c20d3e55aa3394b253\transformed\material-icons-extended-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-extended-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ac7c312f491c31c20d3e55aa3394b253\transformed\material-icons-extended-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\940d7376094d89eab8d8a8afcebf9e08\transformed\material-ripple-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\940d7376094d89eab8d8a8afcebf9e08\transformed\material-ripple-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0414905b40381af755ab1c577f1843b7\transformed\foundation-layout-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0414905b40381af755ab1c577f1843b7\transformed\foundation-layout-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ffb4e1bc675875170e20c4ec05612454\transformed\animation-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ffb4e1bc675875170e20c4ec05612454\transformed\animation-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\c18cc6f5672af3a3a4b1311a85f0f1ed\transformed\animation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\c18cc6f5672af3a3a4b1311a85f0f1ed\transformed\animation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0329d4d7a0bbf2930c1020856f5be6e1\transformed\ui-tooling-data-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0329d4d7a0bbf2930c1020856f5be6e1\transformed\ui-tooling-data-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b20f927a8ba6f71dd664c36cd7a27bcf\transformed\ui-unit-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b20f927a8ba6f71dd664c36cd7a27bcf\transformed\ui-unit-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2fe6b9f7ee0cd3d8e72e8053d41da9e6\transformed\ui-geometry-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2fe6b9f7ee0cd3d8e72e8053d41da9e6\transformed\ui-geometry-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\1173e3ad206cfba67f7f467671cfce1d\transformed\ui-graphics-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\1173e3ad206cfba67f7f467671cfce1d\transformed\ui-graphics-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7a16d2ab5f5302399cf234381bfb1c9e\transformed\ui-util-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7a16d2ab5f5302399cf234381bfb1c9e\transformed\ui-util-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\73bd8aef3bded93f9016a3082636bc73\transformed\ui-text-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\73bd8aef3bded93f9016a3082636bc73\transformed\ui-text-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\29593d946fcc9f03a4b53babbd9c8d3d\transformed\ui-tooling-preview-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\29593d946fcc9f03a4b53babbd9c8d3d\transformed\ui-tooling-preview-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment:1.3.6] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7d95184a6b2c8fcc02441786981bc31f\transformed\fragment-1.3.6\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.3.6] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7d95184a6b2c8fcc02441786981bc31f\transformed\fragment-1.3.6\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d64fc3f65f1cda9a0c11db4d7d56189c\transformed\activity-1.9.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d64fc3f65f1cda9a0c11db4d7d56189c\transformed\activity-1.9.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b1439c36206e0e574da0d4adac4ca492\transformed\activity-ktx-1.9.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b1439c36206e0e574da0d4adac4ca492\transformed\activity-ktx-1.9.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\419da67e38dd5263104e05b5b2ed99fb\transformed\activity-compose-1.9.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.9.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\419da67e38dd5263104e05b5b2ed99fb\transformed\activity-compose-1.9.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\69c47648ae62fd3b666b926e256ac46c\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\69c47648ae62fd3b666b926e256ac46c\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0106e2662a4f3921ef74b9ccb5d94302\transformed\savedstate-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0106e2662a4f3921ef74b9ccb5d94302\transformed\savedstate-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\beb1592a37c9326a300e44563a6f240d\transformed\emoji2-views-helper-1.3.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\beb1592a37c9326a300e44563a6f240d\transformed\emoji2-views-helper-1.3.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\48ee4f25b3a0770ea067bd82186a5bcd\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\48ee4f25b3a0770ea067bd82186a5bcd\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\10e2ecf74dcf2abf93d42a2ffe026132\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\10e2ecf74dcf2abf93d42a2ffe026132\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a6870d70ae99f4757830995e2457d125\transformed\lifecycle-livedata-core-ktx-2.8.3\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a6870d70ae99f4757830995e2457d125\transformed\lifecycle-livedata-core-ktx-2.8.3\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\1ad46aa1459e4377de20bc031959f9fa\transformed\lifecycle-livedata-2.8.3\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\1ad46aa1459e4377de20bc031959f9fa\transformed\lifecycle-livedata-2.8.3\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7619eb10aed48f8bf221a50ea3b48bcf\transformed\lifecycle-livedata-core-2.8.3\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7619eb10aed48f8bf221a50ea3b48bcf\transformed\lifecycle-livedata-core-2.8.3\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\8aeaff9434f55955e5e0275e9fa3e1ec\transformed\lifecycle-viewmodel-2.8.3\AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\8aeaff9434f55955e5e0275e9fa3e1ec\transformed\lifecycle-viewmodel-2.8.3\AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3e9974483f8a2887d423f669a561ab68\transformed\lifecycle-viewmodel-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3e9974483f8a2887d423f669a561ab68\transformed\lifecycle-viewmodel-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\005fcefd0464c7df2e8c17c19bc4de57\transformed\lifecycle-runtime-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\005fcefd0464c7df2e8c17c19bc4de57\transformed\lifecycle-runtime-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0cf93ccfd446f4eddc58101cbf2c54c2\transformed\lifecycle-viewmodel-ktx-2.8.3\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0cf93ccfd446f4eddc58101cbf2c54c2\transformed\lifecycle-viewmodel-ktx-2.8.3\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\23f83a0b357543e41ec4b9ce68905399\transformed\lifecycle-viewmodel-savedstate-2.8.3\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\23f83a0b357543e41ec4b9ce68905399\transformed\lifecycle-viewmodel-savedstate-2.8.3\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3daeadd7c1c5221068eff61a9625cb28\transformed\lifecycle-runtime-ktx-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\3daeadd7c1c5221068eff61a9625cb28\transformed\lifecycle-runtime-ktx-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\83fab852e6aed22c8a7d4b562e130416\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\83fab852e6aed22c8a7d4b562e130416\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:5:5-44
+MERGED from [com.google.accompanist:accompanist-drawablepainter:0.32.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9e74b752ccdca79da51d2c3103d8d945\transformed\accompanist-drawablepainter-0.32.0\AndroidManifest.xml:21:5-44
+MERGED from [com.google.accompanist:accompanist-drawablepainter:0.32.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9e74b752ccdca79da51d2c3103d8d945\transformed\accompanist-drawablepainter-0.32.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.compose.ui:ui-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\f127d3379b8dfe5046fb5982d8bf2dcc\transformed\ui-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\f127d3379b8dfe5046fb5982d8bf2dcc\transformed\ui-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\39bb92aa90a8535e005e719ac6fc8cd5\transformed\foundation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\39bb92aa90a8535e005e719ac6fc8cd5\transformed\foundation-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2a67436ffc1aeb55c8634c454b25c7d0\transformed\recyclerview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2a67436ffc1aeb55c8634c454b25c7d0\transformed\recyclerview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2ba7ba841e7fcc7e21e7b067ae5a0ba7\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2ba7ba841e7fcc7e21e7b067ae5a0ba7\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0197b01e990628be0c3e9030b6faf491\transformed\customview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\0197b01e990628be0c3e9030b6faf491\transformed\customview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.autofill:autofill:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2ed1771c7227a90cb06ab9e5b893385d\transformed\autofill-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.autofill:autofill:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\2ed1771c7227a90cb06ab9e5b893385d\transformed\autofill-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7cb20eba6fb38be7b20591e14223d7a9\transformed\customview-poolingcontainer-1.0.0\AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7cb20eba6fb38be7b20591e14223d7a9\transformed\customview-poolingcontainer-1.0.0\AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6097c40d15dacfe391328b83a62aa05b\transformed\core-ktx-1.13.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6097c40d15dacfe391328b83a62aa05b\transformed\core-ktx-1.13.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6fa30fb36bd9b6a15bdb366a9741b71e\transformed\datastore-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\6fa30fb36bd9b6a15bdb366a9741b71e\transformed\datastore-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e95c4cace1dacb8cf2a70804937088ef\transformed\datastore-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e95c4cace1dacb8cf2a70804937088ef\transformed\datastore-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\5e4e8699cd8d364cf0814b466ccc025b\transformed\datastore-preferences-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\5e4e8699cd8d364cf0814b466ccc025b\transformed\datastore-preferences-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9dee8940401f09c9f08ca837e3593b52\transformed\runtime-saveable-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\9dee8940401f09c9f08ca837e3593b52\transformed\runtime-saveable-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\de4e51d5ea5091592e707490acc496d1\transformed\runtime-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\de4e51d5ea5091592e707490acc496d1\transformed\runtime-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e45c4ea1351ac944c4cc21b76600c459\transformed\annotation-experimental-1.4.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e45c4ea1351ac944c4cc21b76600c459\transformed\annotation-experimental-1.4.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a0c0844022f25aaade5c7d132447c938\transformed\cardview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\a0c0844022f25aaade5c7d132447c938\transformed\cardview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\75190966ea2e091ecc66e3f677e6b6ce\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\75190966ea2e091ecc66e3f677e6b6ce\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d22133532aa5be71d0b5a43eca5ef57b\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d22133532aa5be71d0b5a43eca5ef57b\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\5b9e88f52d6ef2206536712523d392e4\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\5b9e88f52d6ef2206536712523d392e4\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ce4bc897732af5e850922a34b628cfe8\transformed\tracing-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\ce4bc897732af5e850922a34b628cfe8\transformed\tracing-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\f587e6ef21aa4ba8d3416cc42186f7da\transformed\documentfile-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\f587e6ef21aa4ba8d3416cc42186f7da\transformed\documentfile-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\265ccf1c02d816e7f990c29b6ba3391a\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\265ccf1c02d816e7f990c29b6ba3391a\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7817dbf4db388b08fe091e0bc6db0c4d\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\7817dbf4db388b08fe091e0bc6db0c4d\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e582f2ee23f09a9207cb855b8fa9944b\transformed\exifinterface-1.3.7\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\heyra\.gradle\caches\9.0.0\transforms\e582f2ee23f09a9207cb855b8fa9944b\transformed\exifinterface-1.3.7\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\626a298716f733f0fd241d76f665ea07\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\626a298716f733f0fd241d76f665ea07\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
+	android:targetSdkVersion
+		INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\ons\app\android\app\src\main\AndroidManifest.xml
+activity#androidx.compose.ui.tooling.PreviewActivity
+ADDED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\275af3ed758422ef1fd1ac1c4c079c5e\transformed\ui-tooling-release\AndroidManifest.xml:24:13-71
+activity#androidx.activity.ComponentActivity
+ADDED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-test-manifest:1.6.8] C:\Users\heyra\.gradle\caches\9.0.0\transforms\d43dfd32d96feef50487c96d89bf8e34\transformed\ui-test-manifest-1.6.8\AndroidManifest.xml:24:13-63
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\64ea8e611aff740df58465b7a6e0a5c9\transformed\startup-runtime-1.1.1\AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] C:\Users\heyra\.gradle\caches\9.0.0\transforms\eb8ce397c0ce3d4101627ab8bbeb2a62\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\heyra\.gradle\caches\9.0.0\transforms\092bcbff2e42de1bc7b7a7824dead182\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:30:17-78
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+permission#com.onsgold.admin.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+uses-permission#com.onsgold.admin.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\b32f073b2fcd3ca6afd6562430d26eef\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\heyra\.gradle\caches\9.0.0\transforms\67cd2befa7ff235c71ca4bfd4a5c7c85\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92

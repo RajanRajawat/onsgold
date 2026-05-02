@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.onsgold.admin.app-mergeDebugResources-67:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\heyra\\.gradle\\caches\\9.0.0\\transforms\\ba17d545e14bac4c3c298934ef4d575c\\transformed\\appcompat-1.6.1\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "5",
+                        "endColumns": "12",
+                        "endOffsets": "223"
+                    }
+                }
+            ]
+        }
+    ]
+}

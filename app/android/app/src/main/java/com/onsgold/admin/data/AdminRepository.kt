@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Base64
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.onsgold.admin.BuildConfig
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,6 +21,7 @@ import java.io.IOException
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalSerializationApi::class)
 class AdminRepository(
     private val context: Context,
     private val sessionStore: SessionStore,
@@ -74,10 +76,9 @@ class AdminRepository(
         ).message
     }
 
-    suspend fun loadDashboard(): DashboardBundle {
+    suspend fun loadOrders(): List<AdminOrderItem> {
         val token = requireToken()
         val auth = authHeader(token)
-        val summary = api.dashboardSummary(auth)
         val orders = api.adminOrders(auth).map {
             AdminOrderItem(
                 id = it.id,
@@ -115,11 +116,7 @@ class AdminRepository(
                 email = it.email,
             )
         }
-
-        return DashboardBundle(
-            summary = summary,
-            orders = (orders + custom).sortedByDescending { it.createdAt },
-        )
+        return (orders + custom).sortedByDescending { it.createdAt }
     }
 
     suspend fun listProducts(page: Int, pageSize: Int, search: String?): ProductListResponse {
@@ -269,15 +266,6 @@ class AdminRepository(
             )
         }
         return api.reportBug(authHeader(token), payload).message
-    }
-
-    suspend fun exportOrdersCsv(): String {
-        val token = requireToken()
-        val response = api.exportOrdersCsv(authHeader(token))
-        if (!response.isSuccessful) {
-            throw IOException("Unable to export CSV.")
-        }
-        return response.body()?.string().orEmpty()
     }
 
     suspend fun logout() {

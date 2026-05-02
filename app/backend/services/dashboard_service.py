@@ -22,7 +22,7 @@ async def get_dashboard_analytics() -> AnalyticsResponse:
     if isinstance(cached, AnalyticsResponse) and monotonic() < expires_at:
         return cached
 
-    custom_new_count, total_products, total_orders, total_custom_requests, new_order_count, featured_products = await asyncio.gather(
+    custom_new_count, total_products, total_orders, total_custom_requests, new_order_count = await asyncio.gather(
         get_custom_request_collection().count_documents(
             {
                 "$or": [
@@ -35,14 +35,12 @@ async def get_dashboard_analytics() -> AnalyticsResponse:
         get_order_collection().count_documents({}),
         get_custom_request_collection().count_documents({}),
         get_order_collection().count_documents({"status": "new"}),
-        get_product_collection().count_documents({"featured": True}),
     )
     analytics = AnalyticsResponse(
         total_products=total_products,
         total_orders=total_orders,
         total_custom_requests=total_custom_requests,
         new_orders=new_order_count + custom_new_count,
-        featured_products=featured_products,
     )
     _dashboard_cache["value"] = analytics
     _dashboard_cache["expires_at"] = monotonic() + _DASHBOARD_CACHE_TTL_SECONDS

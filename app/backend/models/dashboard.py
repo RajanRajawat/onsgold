@@ -10,7 +10,6 @@ class AnalyticsResponse(BaseModel):
     total_orders: int
     total_custom_requests: int
     new_orders: int
-    featured_products: int
 
 
 class ActivityLogResponse(BaseModel):
