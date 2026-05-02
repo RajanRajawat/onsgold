@@ -77,12 +77,44 @@ let editingAdminEmail = null;
 let activeAdminModalEmail = null;
 let bugImageBase64 = null;
 let bugImageMime = null;
+let toastTimer = 0;
 
 function showToast(message, type = "") {
   const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.className = `show ${type}`.trim();
-  setTimeout(() => { toast.className = ""; }, 3000);
+  if (!toast) return;
+  const icons = {
+    success: `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M8 12.5l2.5 2.5L16 9.5"></path>
+      </svg>
+    `,
+    error: `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M9 9l6 6"></path>
+        <path d="M15 9l-6 6"></path>
+      </svg>
+    `,
+    info: `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 10v5"></path>
+        <circle cx="12" cy="7.25" r=".75" fill="currentColor" stroke="none"></circle>
+      </svg>
+    `,
+  };
+  const normalizedType = type === "success" || type === "error" ? type : "info";
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[normalizedType]}</span>
+    <span class="toast-text">${escapeHtml(message)}</span>
+  `;
+  toast.className = `show ${normalizedType}`.trim();
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => {
+    toast.className = "";
+    toast.innerHTML = "";
+  }, 3200);
 }
 
 function showMsg(node, message, type = "error") {
@@ -1044,11 +1076,13 @@ async function saveProduct(event) {
     if (!payload.images.length) throw new Error("Upload at least one product image.");
     await api("/products", "POST", payload);
     showMsg(msg, "Product created successfully.", "success");
+    showToast("Product created successfully.", "success");
     resetProductForm();
     productCurrentPage = 1;
     await loadDashboardData();
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1086,6 +1120,7 @@ async function saveProductFromModal(event) {
     await loadDashboardData();
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1103,6 +1138,7 @@ async function deleteProductFromModal() {
     await loadDashboardData();
   } catch (error) {
     showMsg(document.getElementById("pdm-msg"), error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1129,8 +1165,10 @@ async function requestRegisterOtp() {
     document.getElementById("register-btn").style.display = "inline-flex";
     stopLoading("Resend OTP");
     showMsg(msg, "OTP sent to your email. Enter it below to confirm admin creation.", "success");
+    showToast("OTP sent for admin creation.", "success");
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
     stopLoading();
   }
 }
@@ -1160,9 +1198,11 @@ async function confirmRegisterAdmin() {
     document.getElementById("register-btn").style.display = "none";
     document.getElementById("register-otp-btn").textContent = "Request OTP";
     showMsg(msg, "Admin account created and credentials emailed.", "success");
+    showToast("Admin account created successfully.", "success");
     await loadDashboardData();
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1184,8 +1224,10 @@ async function requestDeleteOtp() {
     document.getElementById("da-btn").style.display = "inline-flex";
     stopLoading("Resend OTP");
     showMsg(msg, "OTP sent to your email. Enter it below to confirm deletion.", "success");
+    showToast("OTP sent for admin deletion.", "success");
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
     stopLoading();
   }
 }
@@ -1209,9 +1251,11 @@ async function confirmDeleteAdminFromForm() {
     document.getElementById("da-btn").style.display = "none";
     document.getElementById("da-otp-btn").textContent = "Request OTP";
     showMsg(msg, "Admin account removed successfully.", "success");
+    showToast("Admin account removed successfully.", "success");
     await loadDashboardData();
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1239,8 +1283,10 @@ async function requestAdminEditOtp() {
     await api("/admin/request-edit-otp", "POST", { target_email: activeAdminModalEmail });
     document.getElementById("adm-otp-section").style.display = "block";
     showMsg(msg, "OTP sent to your email. Enter it below.", "success");
+    showToast("OTP sent for admin update.", "success");
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1270,6 +1316,7 @@ async function saveAdminCredentials() {
     await loadDashboardData();
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1291,8 +1338,10 @@ async function requestModalDeleteOtp() {
     await api("/admin/request-delete-otp", "POST", { target_email: activeAdminModalEmail });
     document.getElementById("adm-delete-otp-section").style.display = "block";
     showMsg(msg, "OTP sent to your email. Enter it below to confirm permanent deletion.", "success");
+    showToast("OTP sent for admin deletion.", "success");
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1315,6 +1364,7 @@ async function confirmModalDeleteAdmin() {
     await loadDashboardData();
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1373,6 +1423,7 @@ async function submitProfileName() {
     setTimeout(closeProfileModal, 900);
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1404,6 +1455,7 @@ async function submitProfilePassword() {
     setTimeout(logout, 1500);
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
@@ -1430,6 +1482,7 @@ async function submitProfileEmail() {
     setTimeout(logout, 1500);
   } catch (error) {
     showMsg(msg, error.message, "error");
+    showToast(error.message, "error");
   } finally {
     stopLoading();
   }
