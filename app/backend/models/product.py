@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 from enum import Enum
 
@@ -36,6 +37,19 @@ class ProductBase(BaseModel):
     @classmethod
     def sanitize_text_fields(cls, value: str) -> str:
         return sanitize_text(value) or ""
+
+    @field_validator("weight", mode="before")
+    @classmethod
+    def normalize_weight(cls, value):
+        if value is None or value == "":
+            return value
+        try:
+            weight = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Weight must be a valid number.") from exc
+        if not math.isfinite(weight):
+            raise ValueError("Weight must be a valid number.")
+        return weight
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -78,6 +92,19 @@ class ProductUpdate(BaseModel):
         if value is None:
             return None
         return sanitize_text(value)
+
+    @field_validator("weight", mode="before")
+    @classmethod
+    def normalize_optional_weight(cls, value):
+        if value is None or value == "":
+            return None
+        try:
+            weight = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Weight must be a valid number.") from exc
+        if not math.isfinite(weight):
+            raise ValueError("Weight must be a valid number.")
+        return weight
 
     @field_validator("tags", mode="before")
     @classmethod

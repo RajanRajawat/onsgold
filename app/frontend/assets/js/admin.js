@@ -230,6 +230,15 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function readPositiveNumberInput(id, label) {
+  const input = document.getElementById(id);
+  const value = Number(input?.value);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${label} must be a valid number greater than 0.`);
+  }
+  return value;
+}
+
 function formatActionLabel(action) {
   return stockLabel(String(action || "").toLowerCase());
 }
@@ -1023,7 +1032,7 @@ async function saveProduct(event) {
       category: document.getElementById("product-category").value,
       metal: document.getElementById("product-metal").value,
       purity: document.getElementById("product-purity").value.trim(),
-      weight: Number(document.getElementById("product-weight").value),
+      weight: readPositiveNumberInput("product-weight", "Weight"),
       price: null,
       price_on_request: false,
       stock_status: document.getElementById("product-stock").value,
@@ -1061,7 +1070,7 @@ async function saveProductFromModal(event) {
       category: document.getElementById("pdm-product-category").value,
       metal: document.getElementById("pdm-product-metal").value,
       purity: document.getElementById("pdm-product-purity").value.trim(),
-      weight: Number(document.getElementById("pdm-product-weight").value),
+      weight: readPositiveNumberInput("pdm-product-weight", "Weight"),
       price: null,
       price_on_request: false,
       stock_status: document.getElementById("pdm-product-stock").value,
