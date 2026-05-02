@@ -23,7 +23,7 @@
         android:debuggable="true"
         android:extractNativeLibs="false"
         android:icon="@drawable/logo"
-        android:label="ONS Gold Admin"
+        android:label="ONS GOLD"
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.OnsGoldAdmin" >

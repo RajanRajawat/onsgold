@@ -1,6 +1,5 @@
 package com.onsgold.admin.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -38,7 +37,7 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun OnsGoldAdminTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     MaterialTheme(

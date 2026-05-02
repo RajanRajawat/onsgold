@@ -31,6 +31,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
@@ -102,6 +103,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.onsgold.admin.data.ActivityLogResponse
 import com.onsgold.admin.data.AdminListItem
@@ -608,11 +610,6 @@ private fun MainScaffold(
                     }
                 },
                 actions = {
-                    if (destination == RootDestination.Products) {
-                        IconButton(onClick = onCreateProduct) {
-                            Icon(Icons.Default.Add, contentDescription = "Add product")
-                        }
-                    }
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
@@ -811,6 +808,7 @@ private fun SectionHeroCard(
     highlights: List<String>,
 ) {
     Card(
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary,
         ),
@@ -865,6 +863,7 @@ private fun ProductsScreen(
     onEditProduct: (ProductResponse) -> Unit,
 ) {
     var query by rememberSaveable(currentSearch) { mutableStateOf(currentSearch) }
+    val totalPages = maxOf(1, (total + pageSize - 1) / pageSize)
 
     Column(
         modifier = Modifier
@@ -872,15 +871,6 @@ private fun ProductsScreen(
             .padding(padding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SectionHeroCard(
-            title = "Products on the go",
-            body = "Create products, replace images, and clean up catalog details from mobile without opening the desktop portal.",
-            highlights = listOf(
-                "$total live",
-                "Page $page",
-                "Fast edits",
-            ),
-        )
         OutlinedTextField(
             value = query,
             onValueChange = {
@@ -914,14 +904,12 @@ private fun ProductsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Page $page of ${maxOf(1, (total + pageSize - 1) / pageSize)}")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onPrev, enabled = page > 1) { Text("Previous") }
-                    OutlinedButton(
-                        onClick = onNext,
-                        enabled = page < maxOf(1, (total + pageSize - 1) / pageSize),
-                    ) {
-                        Text("Next")
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    IconButton(onClick = onPrev, enabled = page > 1) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous page")
+                    }
+                    IconButton(onClick = onNext, enabled = page < totalPages) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next page")
                     }
                 }
             }
@@ -953,29 +941,16 @@ private fun ProductCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(product.title, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(product.productId, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        labelize(product.category),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit product")
                 }
             }
-            ChipRow(
-                values = listOf(
-                    product.category,
-                    labelize(product.metal),
-                    product.purity,
-                    "${product.weight} g",
-                    labelize(product.stockStatus),
-                ),
-            )
-            if (product.tags.isNotEmpty()) {
-                ChipRow(values = product.tags.take(4))
-            }
-            Text(
-                product.description,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -1009,15 +984,6 @@ private fun OrdersScreen(
             .padding(padding),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SectionHeroCard(
-            title = "Order desk",
-            body = "Track catalog and custom orders, open the full detail sheet, update statuses, and add notes from one mobile view.",
-            highlights = listOf(
-                "${orders.size} total",
-                "${filtered.size} visible",
-                "Live status updates",
-            ),
-        )
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -1435,7 +1401,7 @@ private fun AccountScreen(
             )
         }
         item {
-            Card {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     AccountLine(Icons.Default.Person, "Name", currentUser?.name ?: "-")
                     AccountLine(Icons.Default.Email, "Email", currentUser?.email ?: "-")
@@ -1444,20 +1410,20 @@ private fun AccountScreen(
             }
         }
         item {
-            Card {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Profile actions", fontWeight = FontWeight.SemiBold)
-                    FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Name) }) {
+                    FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Name) }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Person, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Change display name")
                     }
-                    FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Email) }) {
+                    FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Email) }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.AlternateEmail, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Change email")
                     }
-                    FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Password) }) {
+                    FilledTonalButton(onClick = { onOpenProfileDialog(ProfileDialogMode.Password) }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Key, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Change password")
@@ -1466,14 +1432,14 @@ private fun AccountScreen(
             }
         }
         item {
-            Card {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Support", fontWeight = FontWeight.SemiBold)
                     Text(
                         "Report issues from the mobile app directly to the admin portal support flow.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Button(onClick = onOpenBugDialog) {
+                    Button(onClick = onOpenBugDialog, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.BugReport, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Report bug")
@@ -1510,59 +1476,34 @@ private fun ProductEditorDialog(
             selectedImages.addAll(uris)
         }
     }
+    val canSave = title.isNotBlank() &&
+        category.isNotBlank() &&
+        purity.isNotBlank() &&
+        description.length >= 10 &&
+        weight.toDoubleOrNull()?.let { it > 0 } == true &&
+        (selectedImages.isNotEmpty() || initial.existingImages.isNotEmpty())
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = {
-                    val parsedWeight = weight.toDoubleOrNull() ?: 0.0
-                    onSave(
-                        ProductPayload(
-                            title = title.trim(),
-                            category = category.trim(),
-                            metal = metal,
-                            description = description.trim(),
-                            purity = purity.trim(),
-                            weight = parsedWeight,
-                            images = initial.existingImages,
-                            stockStatus = stock,
-                            tags = tags.split(",").map { it.trim() }.filter { it.isNotBlank() },
-                        ),
-                        selectedImages.toList(),
-                    )
-                },
-                enabled = title.isNotBlank() &&
-                    category.isNotBlank() &&
-                    purity.isNotBlank() &&
-                    description.length >= 10 &&
-                    weight.toDoubleOrNull()?.let { it > 0 } == true &&
-                    (selectedImages.isNotEmpty() || initial.existingImages.isNotEmpty()),
-            ) {
-                Text(if (initial.productId == null) "Create" else "Save")
-            }
-        },
-        dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (initial.productId != null) {
-                    FilledTonalButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, contentDescription = null)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Delete")
-                    }
-                }
-                TextButton(onClick = onDismiss) { Text("Cancel") }
-            }
-        },
-        title = { Text(if (initial.productId == null) "Create product" else "Edit product") },
-        text = {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 620.dp)
+                .padding(12.dp),
+            shape = RoundedCornerShape(28.dp),
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 520.dp)
+                    .padding(20.dp)
+                    .heightIn(max = 640.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                Text(
+                    if (initial.productId == null) "Create product" else "Edit product",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
                 OutlinedTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Title") })
                 DropdownField(
                     label = "Category",
@@ -1616,9 +1557,49 @@ private fun ProductEditorDialog(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(if (selectedImages.isEmpty()) "Choose images" else "Replace images")
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (initial.productId != null) {
+                        FilledTonalButton(onClick = onDelete) {
+                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Delete")
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = onDismiss) {
+                            Text("Cancel")
+                        }
+                        Button(
+                            onClick = {
+                                val parsedWeight = weight.toDoubleOrNull() ?: 0.0
+                                onSave(
+                                    ProductPayload(
+                                        title = title.trim(),
+                                        category = category.trim(),
+                                        metal = metal,
+                                        description = description.trim(),
+                                        purity = purity.trim(),
+                                        weight = parsedWeight,
+                                        images = initial.existingImages,
+                                        stockStatus = stock,
+                                        tags = tags.split(",").map { it.trim() }.filter { it.isNotBlank() },
+                                    ),
+                                    selectedImages.toList(),
+                                )
+                            },
+                            enabled = canSave,
+                        ) {
+                            Text(if (initial.productId == null) "Create" else "Save")
+                        }
+                    }
+                }
             }
-        },
-    )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

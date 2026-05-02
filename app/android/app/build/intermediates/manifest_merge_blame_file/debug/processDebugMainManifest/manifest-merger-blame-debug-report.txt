@@ -36,8 +36,8 @@
 24        android:extractNativeLibs="false"
 25        android:icon="@drawable/logo"
 25-->D:\ons\app\android\app\src\main\AndroidManifest.xml:9:9-38
-26        android:label="ONS Gold Admin"
-26-->D:\ons\app\android\app\src\main\AndroidManifest.xml:10:9-39
+26        android:label="ONS GOLD"
+26-->D:\ons\app\android\app\src\main\AndroidManifest.xml:10:9-33
 27        android:roundIcon="@drawable/logo"
 27-->D:\ons\app\android\app\src\main\AndroidManifest.xml:11:9-43
 28        android:supportsRtl="true"
