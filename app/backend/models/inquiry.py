@@ -10,7 +10,25 @@ class InquiryStatus(str, Enum):
     new = "new"
     contacted = "contacted"
     quoted = "quoted"
+    in_making = "in_making"
     closed = "closed"
+    delivered = "delivered"
+
+
+def normalize_inquiry_status_input(value: str | InquiryStatus) -> str:
+    raw = str(value.value if isinstance(value, InquiryStatus) else value or "").strip().lower()
+    raw = raw.replace("-", "_").replace(" ", "_")
+    if raw == InquiryStatus.quoted.value:
+        return InquiryStatus.in_making.value
+    if raw in {
+        InquiryStatus.new.value,
+        InquiryStatus.contacted.value,
+        InquiryStatus.in_making.value,
+        InquiryStatus.closed.value,
+        InquiryStatus.delivered.value,
+    }:
+        return raw
+    return raw
 
 
 class InquirySource(str, Enum):
@@ -74,11 +92,17 @@ class OrderResponse(BaseModel):
     products: list[OrderProductSnapshot]
     comments: list[OrderComment] = Field(default_factory=list)
     created_at: datetime
+    updated_at: datetime
     whatsapp_url: str | None = None
 
 
 class OrderStatusUpdate(BaseModel):
     status: InquiryStatus
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, value):
+        return normalize_inquiry_status_input(value)
 
 
 class OrderCommentCreateRequest(BaseModel):
@@ -129,6 +153,7 @@ class CustomRequestResponse(BaseModel):
     status: InquiryStatus
     comments: list[OrderComment] = Field(default_factory=list)
     created_at: datetime
+    updated_at: datetime
     inquiry_source: InquirySource
     email: str | None = None
     whatsapp_url: str | None = None

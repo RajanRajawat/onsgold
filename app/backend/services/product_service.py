@@ -40,15 +40,13 @@ def serialize_product(document: dict) -> ProductResponse:
         product_id=document["product_id"],
         title=document["title"],
         category=document["category"],
-        metal=document.get("metal", "gold"),
-        description=document["description"],
-        purity=document["purity"],
-        weight=document["weight"],
+        metal=document.get("metal"),
+        description=document.get("description"),
+        purity=document.get("purity"),
+        weight=document.get("weight"),
         price=document.get("price"),
         price_on_request=document.get("price_on_request", False),
         images=document["images"],
-        stock_status=document["stock_status"],
-        tags=document.get("tags", []),
         slug=document["slug"],
         created_at=document["created_at"],
         updated_at=document["updated_at"],
@@ -111,9 +109,22 @@ async def update_product(identifier: str, payload: ProductUpdate) -> ProductResp
     updates: dict[str, Any] = {k: v for k, v in payload.model_dump(exclude_unset=True).items()}
     if "title" in updates:
         updates["slug"] = slugify(updates["title"])
+    unset_fields = {
+        key: ""
+        for key in ("metal", "description", "purity", "weight")
+        if key in updates and updates[key] is None
+    }
+    for key in unset_fields:
+        updates.pop(key, None)
     updates["updated_at"] = utc_now()
-    await get_product_collection().update_one({"_id": product["_id"]}, {"$set": updates})
+    unset_fields.update({"stock_status": "", "tags": ""})
+    update_document: dict[str, Any] = {"$set": updates}
+    if unset_fields:
+        update_document["$unset"] = unset_fields
+    await get_product_collection().update_one({"_id": product["_id"]}, update_document)
     product.update(updates)
+    for key in unset_fields:
+        product.pop(key, None)
     invalidate_product_caches()
     return serialize_product(product)
 
@@ -130,7 +141,6 @@ async def list_products(
     category: str | None,
     metal: str | None,
     purity: str | None,
-    stock_status: str | None,
     min_weight: float | None,
     max_weight: float | None,
     min_price: float | None,
@@ -145,7 +155,6 @@ async def list_products(
         category,
         metal,
         purity,
-        stock_status,
         min_weight,
         max_weight,
         min_price,
@@ -170,8 +179,6 @@ async def list_products(
         query["metal"] = {"$regex": f"^{re.escape(metal)}$", "$options": "i"}
     if purity:
         query["purity"] = {"$regex": f"^{re.escape(purity)}$", "$options": "i"}
-    if stock_status:
-        query["stock_status"] = {"$regex": f"^{re.escape(stock_status)}$", "$options": "i"}
     if min_weight is not None or max_weight is not None:
         query["weight"] = {}
         if min_weight is not None:

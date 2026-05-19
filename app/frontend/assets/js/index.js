@@ -415,14 +415,12 @@ function initFeaturedProductsSlider(startIndex = 0) {
 
 function buildProductCard(product, options = {}) {
   const selected = isProductSelected(product.product_id);
-  const isOut = product.stock_status === "out_of_stock";
   const images = Array.isArray(product.images) && product.images.length
     ? product.images
     : [productImage(product)];
-  const cardTags = (product.tags || []).slice(0, 3);
   const metaItems = [
     product.product_id,
-    stockLabel(product.metal),
+    product.metal ? stockLabel(product.metal) : "",
     formatProductWeight(product),
   ].filter(Boolean);
   const showSelect = options.showSelect ?? true;
@@ -452,13 +450,8 @@ function buildProductCard(product, options = {}) {
         <div class="product-badges">
           <div class="product-badge-group">
             <span class="badge">${escapeHtml(product.category)}</span>
-            <span class="badge">${escapeHtml(product.purity)}</span>
+            ${product.purity ? `<span class="badge">${escapeHtml(product.purity)}</span>` : ""}
           </div>
-          ${cardTags.length ? `
-            <div class="product-tag-group">
-              ${cardTags.map(tag => `<span class="badge">${escapeHtml(tag)}</span>`).join("")}
-            </div>
-          ` : ""}
         </div>
         <span class="product-media-view-indicator" aria-hidden="true">
           ${PRODUCT_ACTION_ICONS.view}
@@ -473,8 +466,8 @@ function buildProductCard(product, options = {}) {
         </div>
         ${showSelect ? `
           <div class="product-actions">
-            <button type="button" class="btn-secondary product-action-btn product-action-select select-btn ${selected ? "is-selected" : ""}" data-select="${escapeHtml(product.product_id)}" ${isOut ? "disabled" : ""} aria-label="${isOut ? `Unavailable ${escapeHtml(product.title)}` : `${selected ? "Selected" : "Select"} ${escapeHtml(product.title)}`}" aria-pressed="${selected ? "true" : "false"}">
-              ${buildProductActionContent(selected ? "selected" : "select", isOut ? "Unavailable" : selected ? "Selected" : "Select")}
+            <button type="button" class="btn-secondary product-action-btn product-action-select select-btn ${selected ? "is-selected" : ""}" data-select="${escapeHtml(product.product_id)}" aria-label="${selected ? "Selected" : "Select"} ${escapeHtml(product.title)}" aria-pressed="${selected ? "true" : "false"}">
+              ${buildProductActionContent(selected ? "selected" : "select", selected ? "Selected" : "Select")}
             </button>
           </div>
         ` : ""}
@@ -632,7 +625,6 @@ function renderProducts() {
 
   grid.innerHTML = state.products.map(product => {
     const selected = isProductSelected(product.product_id);
-    const isOut = product.stock_status === "out_of_stock";
     const images = Array.isArray(product.images) && product.images.length
       ? product.images
       : [productImage(product)];
@@ -660,7 +652,7 @@ function renderProducts() {
           `}
           <div class="product-badges">
             <span class="badge">${escapeHtml(product.category)}</span>
-            <span class="badge">${escapeHtml(product.purity)}</span>
+            ${product.purity ? `<span class="badge">${escapeHtml(product.purity)}</span>` : ""}
           </div>
         </button>
         <div class="product-body">
@@ -668,20 +660,18 @@ function renderProducts() {
             <h2 class="product-title">${escapeHtml(product.title)}</h2>
             <div class="product-meta">
               <span class="pill">${escapeHtml(product.product_id)}</span>
-              <span class="pill">${escapeHtml(stockLabel(product.metal))}</span>
-              <span class="pill">${formatWeightValue(product.weight) || "0.000"} g</span>
-              <span class="pill">${escapeHtml(stockLabel(product.stock_status))}</span>
+              ${product.metal ? `<span class="pill">${escapeHtml(stockLabel(product.metal))}</span>` : ""}
+              ${product.weight ? `<span class="pill">${formatWeightValue(product.weight)} g</span>` : ""}
             </div>
           </div>
           <p class="product-desc">${escapeHtml(truncate(product.description, 150))}</p>
           <div class="tag-row">
             <span class="tag">${escapeHtml(price)}</span>
-            ${(product.tags || []).slice(0, 3).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}
           </div>
           <div class="product-actions">
             <button type="button" class="btn-quiet" data-view="${escapeHtml(product.product_id)}">View</button>
-            <button type="button" class="btn-secondary select-btn ${selected ? "is-selected" : ""}" data-select="${escapeHtml(product.product_id)}" ${isOut ? "disabled" : ""}>
-              ${isOut ? "Unavailable" : selected ? "Selected" : "Select"}
+            <button type="button" class="btn-secondary select-btn ${selected ? "is-selected" : ""}" data-select="${escapeHtml(product.product_id)}">
+              ${selected ? "Selected" : "Select"}
             </button>
           </div>
         </div>
@@ -796,11 +786,9 @@ function openProductModal(productId) {
   qs("#modal-description").textContent = product.description || "";
   qs("#modal-product-id").textContent = product.product_id;
   qs("#modal-category").textContent = product.category || "-";
-  qs("#modal-metal").textContent = stockLabel(product.metal);
+  qs("#modal-metal").textContent = product.metal ? stockLabel(product.metal) : "-";
   qs("#modal-purity").textContent = product.purity || "-";
-  qs("#modal-weight").textContent = `${formatWeightValue(product.weight || 0) || "0.000"} g`;
-  qs("#modal-stock").textContent = stockLabel(product.stock_status);
-  qs("#modal-tags").innerHTML = (product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+  qs("#modal-weight").textContent = product.weight ? `${formatWeightValue(product.weight)} g` : "-";
 
   const images = product.images || [product.image].filter(Boolean);
   qs("#modal-main-image").src = images[0] || productImage(product);
@@ -824,11 +812,10 @@ function updateModalSelectButtons() {
   const selectButton = qs("#modal-select-btn");
   const orderButton = qs("#modal-order-btn");
   if (!state.modalProduct || !selectButton || !orderButton) return;
-  const isOut = state.modalProduct.stock_status === "out_of_stock";
   const selected = isProductSelected(state.modalProduct.product_id);
-  selectButton.disabled = isOut;
-  orderButton.disabled = isOut;
-  selectButton.textContent = isOut ? "Unavailable" : selected ? "Remove Selection" : "Select Product";
+  selectButton.disabled = false;
+  orderButton.disabled = false;
+  selectButton.textContent = selected ? "Remove Selection" : "Select Product";
 }
 
 function renderProducts() {

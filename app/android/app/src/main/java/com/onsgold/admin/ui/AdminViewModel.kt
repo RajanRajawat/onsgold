@@ -96,11 +96,14 @@ class AdminViewModel(
 
     fun requestForgotOtp(email: String) {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(forgotOtpLoading = true)
             runCatching {
                 repository.requestForgotPassword(email)
             }.onSuccess {
+                _uiState.value = _uiState.value.copy(forgotOtpLoading = false)
                 emitSuccess(it)
             }.onFailure {
+                _uiState.value = _uiState.value.copy(forgotOtpLoading = false)
                 emitError(it.toUserMessage())
             }
         }
@@ -108,11 +111,14 @@ class AdminViewModel(
 
     fun resetForgotPassword(email: String, otp: String, newPassword: String) {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(forgotResetLoading = true)
             runCatching {
                 repository.resetForgotPassword(email, otp, newPassword)
             }.onSuccess {
+                _uiState.value = _uiState.value.copy(forgotResetLoading = false)
                 emitSuccess(it)
             }.onFailure {
+                _uiState.value = _uiState.value.copy(forgotResetLoading = false)
                 emitError(it.toUserMessage())
             }
         }
@@ -408,6 +414,8 @@ data class AdminUiState(
     val isBootstrapping: Boolean = true,
     val isAuthenticated: Boolean = false,
     val authLoading: Boolean = false,
+    val forgotOtpLoading: Boolean = false,
+    val forgotResetLoading: Boolean = false,
     val currentUser: UserResponse? = null,
     val ordersLoading: Boolean = false,
     val productsLoading: Boolean = false,

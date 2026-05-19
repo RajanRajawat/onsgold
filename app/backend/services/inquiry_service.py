@@ -19,6 +19,7 @@ from models.inquiry import (
     OrderCommentCreateRequest,
     OrderProductSnapshot,
     OrderResponse,
+    normalize_inquiry_status_input,
 )
 from services.dashboard_service import invalidate_dashboard_cache
 from services.email_service import notify_super_admins
@@ -27,6 +28,19 @@ logger = get_logger(__name__)
 INQUIRY_ID_LENGTH = 6
 INQUIRY_ID_MIN = 10 ** (INQUIRY_ID_LENGTH - 1)
 INQUIRY_ID_RANGE = 9 * INQUIRY_ID_MIN
+
+
+def normalize_inquiry_status(status_value: str | None) -> str:
+    normalized = normalize_inquiry_status_input(status_value or InquiryStatus.new.value)
+    if normalized in {
+        InquiryStatus.new.value,
+        InquiryStatus.contacted.value,
+        InquiryStatus.in_making.value,
+        InquiryStatus.closed.value,
+        InquiryStatus.delivered.value,
+    }:
+        return normalized
+    return InquiryStatus.new.value
 
 
 def _schedule_notification(subject: str, body: str):
@@ -92,11 +106,12 @@ def serialize_order(
         customer_name=document.get("customer_name") or "Name not provided",
         phone=document.get("phone") or "Name not provided",
         notes=document.get("notes"),
-        status=document["status"],
+        status=normalize_inquiry_status(document.get("status")),
         inquiry_source=document["inquiry_source"],
         products=[OrderProductSnapshot(**item) for item in document["products"]],
         comments=[serialize_order_comment(item, admin_name_lookup) for item in document.get("comments", [])],
         created_at=document["created_at"],
+        updated_at=document.get("updated_at", document["created_at"]),
         whatsapp_url=whatsapp_url,
     )
 
@@ -117,9 +132,10 @@ def serialize_custom_request(
         description=document["description"],
         purity=document["purity"],
         image_urls=document.get("image_urls", []),
-        status=document.get("status", InquiryStatus.new.value),
+        status=normalize_inquiry_status(document.get("status")),
         comments=[serialize_order_comment(item, admin_name_lookup) for item in document.get("comments", [])],
         created_at=document["created_at"],
+        updated_at=document.get("updated_at", document["created_at"]),
         inquiry_source=document["inquiry_source"],
         email=document.get("email"),
         whatsapp_url=whatsapp_url,
@@ -322,9 +338,10 @@ async def list_custom_requests(search: str | None = None):
 
 
 async def update_order_status(inquiry_id: str, status_value: str):
+    normalized_status = normalize_inquiry_status(status_value)
     result = await get_order_collection().update_one(
         {"inquiry_id": inquiry_id},
-        {"$set": {"status": status_value, "updated_at": utc_now()}},
+        {"$set": {"status": normalized_status, "updated_at": utc_now()}},
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inquiry not found.")
@@ -332,9 +349,10 @@ async def update_order_status(inquiry_id: str, status_value: str):
 
 
 async def update_custom_request_status(request_id: str, status_value: str):
+    normalized_status = normalize_inquiry_status(status_value)
     result = await get_custom_request_collection().update_one(
         {"request_id": request_id},
-        {"$set": {"status": status_value, "updated_at": utc_now()}},
+        {"$set": {"status": normalized_status, "updated_at": utc_now()}},
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Custom order request not found.")
@@ -402,7 +420,7 @@ async def export_orders_csv() -> str:
                 "order_type": "catalog_order",
                 "customer_name": item["customer_name"],
                 "phone": item["phone"],
-                "status": item["status"],
+                "status": normalize_inquiry_status(item.get("status")),
                 "inquiry_source": item["inquiry_source"],
                 "products": ", ".join(
                     f'{product.get("title", product["product_id"])} ({product["product_id"]}) x{product["quantity"]}'
@@ -419,7 +437,7 @@ async def export_orders_csv() -> str:
                 "order_type": "custom_order",
                 "customer_name": item["customer_name"],
                 "phone": item["phone"],
-                "status": item.get("status", InquiryStatus.new.value),
+                "status": normalize_inquiry_status(item.get("status")),
                 "inquiry_source": item["inquiry_source"],
                 "products": "",
                 "custom_request": " | ".join(

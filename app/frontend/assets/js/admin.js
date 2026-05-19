@@ -309,7 +309,9 @@ function buildCallLink(phone) {
 
 function readPositiveNumberInput(id, label) {
   const input = document.getElementById(id);
-  const value = Number(input?.value);
+  const rawValue = input?.value.trim() || "";
+  if (!rawValue) return null;
+  const value = Number(rawValue);
   if (!Number.isFinite(value) || value <= 0) {
     throw new Error(`${label} must be a valid number greater than 0.`);
   }
@@ -627,7 +629,7 @@ function openOrderDetailModal(orderRef, orderKind) {
   `;
   document.getElementById("order-modal-created").textContent = formatDateTime(order.created_at);
   const statusSelect = document.getElementById("order-modal-status");
-  statusSelect.innerHTML = ["new", "contacted", "quoted", "closed"]
+  statusSelect.innerHTML = ["new", "contacted", "in_making", "closed", "delivered"]
     .map(status => `<option value="${status}" ${activeOrderDraftStatus === status ? "selected" : ""}>${stockLabel(status)}</option>`)
     .join("");
   statusSelect.onchange = () => {
@@ -911,7 +913,7 @@ async function loadActivityLogsData() {
 function renderProducts(list) {
   const tbody = document.getElementById("products-table-body");
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">No products found.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No products found.</div></td></tr>`;
     updateProductsPagination(productTotalItems);
     return;
   }
@@ -919,10 +921,9 @@ function renderProducts(list) {
     <tr class="products-table-row" data-product-open="${product.product_id}">
       <td>${product.title}<br><small>${product.product_id}</small></td>
       <td>${product.category}</td>
-      <td>${stockLabel(product.metal)}</td>
-      <td>${product.purity}</td>
-      <td>${formatWeightDisplay(product.weight)} g</td>
-      <td>${stockLabel(product.stock_status)}</td>
+      <td>${product.metal ? stockLabel(product.metal) : "-"}</td>
+      <td>${product.purity || "-"}</td>
+      <td>${product.weight ? `${formatWeightDisplay(product.weight)} g` : "-"}</td>
     </tr>
   `).join("");
   tbody.querySelectorAll("[data-product-open]").forEach(row => row.addEventListener("click", () => openProductDetailModal(row.dataset.productOpen)));
@@ -947,7 +948,7 @@ function renderOrders(list) {
       <td>${orderTypeBadge(order.order_kind)}</td>
       <td>
         <select class="order-status-select" data-order-status="${order.order_ref}" data-order-kind="${order.order_kind}">
-          ${["new", "contacted", "quoted", "closed"].map(status => `<option value="${status}" ${order.status === status ? "selected" : ""}>${stockLabel(status)}</option>`).join("")}
+          ${["new", "contacted", "in_making", "closed", "delivered"].map(status => `<option value="${status}" ${order.status === status ? "selected" : ""}>${stockLabel(status)}</option>`).join("")}
         </select>
       </td>
       <td>${formatDateTime(order.created_at)}</td>
@@ -1057,11 +1058,9 @@ function openProductDetailModal(productId = null) {
   const categorySelect = document.getElementById("pdm-product-category");
   if (product?.category) ensureSelectHasOption(categorySelect, product.category);
   categorySelect.value = product?.category || "";
-  document.getElementById("pdm-product-metal").value = product?.metal || "gold";
+  document.getElementById("pdm-product-metal").value = product?.metal || "";
   document.getElementById("pdm-product-purity").value = product?.purity || "";
   document.getElementById("pdm-product-weight").value = formatWeightInputValue(product?.weight);
-  document.getElementById("pdm-product-stock").value = product?.stock_status || "in_stock";
-  document.getElementById("pdm-product-tags").value = product ? (product.tags || []).join(", ") : "";
   document.getElementById("pdm-product-description").value = product?.description || "";
   document.getElementById("pdm-product-images").value = "";
   document.getElementById("pdm-current-images-wrap").style.display = product ? "block" : "none";
@@ -1155,16 +1154,16 @@ async function saveProductFromModal(event) {
     const payload = {
       title: document.getElementById("pdm-product-title").value.trim(),
       category: document.getElementById("pdm-product-category").value,
-      metal: document.getElementById("pdm-product-metal").value,
-      purity: document.getElementById("pdm-product-purity").value.trim(),
+      metal: document.getElementById("pdm-product-metal").value || null,
+      purity: document.getElementById("pdm-product-purity").value.trim() || null,
       weight: readPositiveNumberInput("pdm-product-weight", "Weight"),
       price: null,
       price_on_request: false,
-      stock_status: document.getElementById("pdm-product-stock").value,
-      tags: document.getElementById("pdm-product-tags").value.split(",").map(item => item.trim()).filter(Boolean),
-      description: document.getElementById("pdm-product-description").value.trim(),
+      description: document.getElementById("pdm-product-description").value.trim() || null,
       images: uploadedImages.length ? uploadedImages : (currentProduct?.images || []),
     };
+    if (!payload.title) throw new Error("Please enter product name.");
+    if (!payload.category) throw new Error("Please select a category.");
     if (!payload.images.length) throw new Error("Upload at least one product image.");
     if (activeProductModalId) {
       await api(`/products/${activeProductModalId}`, "PUT", payload);

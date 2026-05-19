@@ -201,7 +201,9 @@ tbody td{padding:13px 20px;font-size:13.5px;color:var(--slate);vertical-align:mi
 .status-new{background:rgba(201,168,76,.14);color:var(--warn);border:1px solid rgba(201,168,76,.24)}
 .status-contacted{background:rgba(143,31,29,.08);color:var(--blue);border:1px solid rgba(143,31,29,.18)}
 .status-quoted{background:rgba(22,163,74,.1);color:var(--success);border:1px solid rgba(22,163,74,.2)}
+.status-in_making{background:rgba(59,130,246,.1);color:#2563eb;border:1px solid rgba(59,130,246,.22)}
 .status-closed{background:rgba(220,38,38,.1);color:var(--danger);border:1px solid rgba(220,38,38,.2)}
+.status-delivered{background:rgba(22,163,74,.1);color:var(--success);border:1px solid rgba(22,163,74,.2)}
 .status-active{background:rgba(22,163,74,.1);color:var(--success);border:1px solid rgba(22,163,74,.2)}
 .status-inactive{background:rgba(220,38,38,.1);color:var(--danger);border:1px solid rgba(220,38,38,.2)}
 #toast{position:fixed;right:24px;bottom:24px;display:flex;align-items:center;gap:12px;max-width:min(360px,calc(100vw - 32px));padding:14px 16px;border-radius:14px;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;line-height:1.45;box-shadow:var(--shadow2);opacity:0;transform:translateY(12px);transition:opacity .25s,transform .25s;z-index:999;pointer-events:none}

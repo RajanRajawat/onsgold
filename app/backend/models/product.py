@@ -7,41 +7,44 @@ from pydantic import BaseModel, Field, field_validator
 from core.security import sanitize_text
 
 
-class StockStatus(str, Enum):
-    in_stock = "in_stock"
-    low_stock = "low_stock"
-    out_of_stock = "out_of_stock"
-    made_to_order = "made_to_order"
-
-
 class MetalType(str, Enum):
     gold = "gold"
     silver = "silver"
 
 
+def _sanitize_optional_text(value):
+    if value is None:
+        return None
+    sanitized = sanitize_text(value)
+    return sanitized or None
+
+
 class ProductBase(BaseModel):
     title: str = Field(..., min_length=2, max_length=160)
     category: str = Field(..., min_length=2, max_length=80)
-    metal: MetalType = MetalType.gold
-    description: str = Field(..., min_length=10, max_length=4000)
-    purity: str = Field(..., min_length=2, max_length=40)
-    weight: float = Field(..., gt=0)
+    metal: MetalType | None = None
+    description: str | None = Field(default=None, max_length=4000)
+    purity: str | None = Field(default=None, min_length=2, max_length=40)
+    weight: float | None = Field(default=None, gt=0)
     price: float | None = Field(default=None, ge=0)
     price_on_request: bool = False
     images: list[str] = Field(default_factory=list, min_length=1)
-    stock_status: StockStatus = StockStatus.in_stock
-    tags: list[str] = Field(default_factory=list)
 
-    @field_validator("title", "category", "description", "purity", mode="before")
+    @field_validator("title", "category", mode="before")
     @classmethod
     def sanitize_text_fields(cls, value: str) -> str:
         return sanitize_text(value) or ""
+
+    @field_validator("description", "purity", mode="before")
+    @classmethod
+    def sanitize_optional_text_fields(cls, value):
+        return _sanitize_optional_text(value)
 
     @field_validator("weight", mode="before")
     @classmethod
     def normalize_weight(cls, value):
         if value is None or value == "":
-            return value
+            return None
         try:
             weight = float(value)
         except (TypeError, ValueError) as exc:
@@ -49,15 +52,6 @@ class ProductBase(BaseModel):
         if not math.isfinite(weight):
             raise ValueError("Weight must be a valid number.")
         return weight
-
-    @field_validator("tags", mode="before")
-    @classmethod
-    def normalize_tags(cls, value):
-        if value is None:
-            return []
-        if isinstance(value, str):
-            value = [item.strip() for item in value.split(",")]
-        return [sanitize_text(item).lower() for item in value if sanitize_text(item)]
 
     @field_validator("images")
     @classmethod
@@ -75,21 +69,24 @@ class ProductUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=2, max_length=160)
     category: str | None = Field(default=None, min_length=2, max_length=80)
     metal: MetalType | None = None
-    description: str | None = Field(default=None, min_length=10, max_length=4000)
+    description: str | None = Field(default=None, max_length=4000)
     purity: str | None = Field(default=None, min_length=2, max_length=40)
     weight: float | None = Field(default=None, gt=0)
     price: float | None = Field(default=None, ge=0)
     price_on_request: bool | None = None
     images: list[str] | None = None
-    stock_status: StockStatus | None = None
-    tags: list[str] | None = None
 
-    @field_validator("title", "category", "description", "purity", mode="before")
+    @field_validator("title", "category", mode="before")
     @classmethod
     def sanitize_optional_text(cls, value):
         if value is None:
             return None
         return sanitize_text(value)
+
+    @field_validator("description", "purity", mode="before")
+    @classmethod
+    def sanitize_optional_text_fields(cls, value):
+        return _sanitize_optional_text(value)
 
     @field_validator("weight", mode="before")
     @classmethod
@@ -104,14 +101,12 @@ class ProductUpdate(BaseModel):
             raise ValueError("Weight must be a valid number.")
         return weight
 
-    @field_validator("tags", mode="before")
+    @field_validator("images")
     @classmethod
-    def normalize_optional_tags(cls, value):
-        if value is None:
-            return None
-        if isinstance(value, str):
-            value = [item.strip() for item in value.split(",")]
-        return [sanitize_text(item).lower() for item in value if sanitize_text(item)]
+    def validate_optional_images(cls, value: list[str] | None) -> list[str] | None:
+        if value is not None and not value:
+            raise ValueError("At least one product image is required.")
+        return value
 
 
 class ProductResponse(ProductBase):

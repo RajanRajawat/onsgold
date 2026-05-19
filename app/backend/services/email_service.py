@@ -3,6 +3,7 @@ import smtplib
 import socket
 import ssl
 from email.message import EmailMessage
+from typing import NamedTuple
 from typing import TypedDict
 
 from core.config import get_settings
@@ -22,6 +23,14 @@ class EmailDeliveryError(RuntimeError):
     pass
 
 
+class SmtpAttempt(NamedTuple):
+    host: str
+    port: int
+    use_tls: bool
+    use_ssl: bool
+    label: str
+
+
 async def get_super_admin_emails() -> list[str]:
     admins = await get_admin_collection().find(
         {
@@ -32,11 +41,7 @@ async def get_super_admin_emails() -> list[str]:
             "is_active": True,
         }
     ).to_list(length=100)
-    emails = [admin["email"] for admin in admins]
-    settings = get_settings()
-    if settings.super_admin_alert_email and settings.super_admin_alert_email not in emails:
-        emails.append(settings.super_admin_alert_email)
-    return emails
+    return [admin["email"] for admin in admins]
 
 
 def _normalize_recipients(recipients: list[str]) -> list[str]:
@@ -49,6 +54,67 @@ def _normalize_recipients(recipients: list[str]) -> list[str]:
         seen.add(email)
         normalized.append(email)
     return normalized
+
+
+def _build_smtp_attempts() -> list[SmtpAttempt]:
+    settings = get_settings()
+    host = str(settings.smtp_host or "").strip()
+    if not host:
+        return []
+
+    attempts: list[SmtpAttempt] = []
+    seen: set[tuple[str, int, bool, bool]] = set()
+
+    def add_attempt(port: int, use_tls: bool, use_ssl: bool, label: str):
+        key = (host.lower(), int(port), bool(use_tls), bool(use_ssl))
+        if key in seen:
+            return
+        seen.add(key)
+        attempts.append(
+            SmtpAttempt(
+                host=host,
+                port=int(port),
+                use_tls=bool(use_tls),
+                use_ssl=bool(use_ssl),
+                label=label,
+            )
+        )
+
+    primary_port = int(settings.smtp_port)
+    primary_ssl = bool(settings.smtp_use_ssl or primary_port == 465)
+    primary_tls = bool(settings.smtp_use_tls and not primary_ssl)
+    add_attempt(primary_port, primary_tls, primary_ssl, "configured transport")
+
+    # Some hosted environments block submission over 587. Try the common SSL transport as a safe fallback.
+    if primary_port != 465:
+        add_attempt(465, False, True, "implicit SSL fallback")
+    if primary_port != 587:
+        add_attempt(587, True, False, "STARTTLS fallback")
+
+    return attempts
+
+
+def _send_message_via_smtp(message: EmailMessage, attempt: SmtpAttempt, username: str | None, password: str | None, timeout_seconds: int):
+    if attempt.use_ssl:
+        with smtplib.SMTP_SSL(
+            attempt.host,
+            attempt.port,
+            timeout=timeout_seconds,
+            context=ssl.create_default_context(),
+        ) as server:
+            if username and password:
+                server.login(username, password)
+            server.send_message(message)
+        return
+
+    with smtplib.SMTP(attempt.host, attempt.port, timeout=timeout_seconds) as server:
+        server.ehlo()
+        if attempt.use_tls:
+            server.starttls(context=ssl.create_default_context())
+            server.ehlo()
+        if username and password:
+            server.login(username, password)
+        server.send_message(message)
 
 
 def send_email_sync(
@@ -87,34 +153,48 @@ def send_email_sync(
         )
 
     timeout_seconds = max(1, int(settings.smtp_timeout_seconds))
-    use_implicit_ssl = settings.smtp_use_ssl or settings.smtp_port == 465
+    attempts = _build_smtp_attempts()
+    last_error: Exception | None = None
 
-    try:
-        if use_implicit_ssl:
-            with smtplib.SMTP_SSL(
-                settings.smtp_host,
-                settings.smtp_port,
-                timeout=timeout_seconds,
-                context=ssl.create_default_context(),
-            ) as server:
-                if settings.smtp_username and settings.smtp_password:
-                    server.login(settings.smtp_username, settings.smtp_password)
-                server.send_message(message)
-        else:
-            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=timeout_seconds) as server:
-                server.ehlo()
-                if settings.smtp_use_tls:
-                    server.starttls(context=ssl.create_default_context())
-                    server.ehlo()
-                if settings.smtp_username and settings.smtp_password:
-                    server.login(settings.smtp_username, settings.smtp_password)
-                server.send_message(message)
-        logger.info("Email sent successfully subject=%s recipients=%s", subject, recipients)
-    except (smtplib.SMTPException, OSError, socket.timeout) as exc:
-        logger.exception("Email delivery failed subject=%s recipients=%s", subject, recipients)
-        if fail_silently:
+    for attempt in attempts:
+        try:
+            _send_message_via_smtp(
+                message=message,
+                attempt=attempt,
+                username=settings.smtp_username,
+                password=settings.smtp_password,
+                timeout_seconds=timeout_seconds,
+            )
+            logger.info(
+                "Email sent successfully subject=%s recipients=%s transport=%s@%s:%s",
+                subject,
+                recipients,
+                attempt.label,
+                attempt.host,
+                attempt.port,
+            )
             return
-        raise EmailDeliveryError("Unable to deliver email with the configured SMTP settings.") from exc
+        except (smtplib.SMTPException, OSError, socket.timeout) as exc:
+            last_error = exc
+            logger.warning(
+                "Email delivery attempt failed subject=%s recipients=%s transport=%s@%s:%s error=%s",
+                subject,
+                recipients,
+                attempt.label,
+                attempt.host,
+                attempt.port,
+                exc,
+            )
+
+    logger.error(
+        "Email delivery failed after all SMTP attempts subject=%s recipients=%s final_error=%s",
+        subject,
+        recipients,
+        last_error,
+    )
+    if fail_silently:
+        return
+    raise EmailDeliveryError("Unable to deliver email with the configured SMTP settings.") from last_error
 
 
 async def notify_super_admins(subject: str, body: str):

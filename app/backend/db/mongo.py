@@ -59,8 +59,6 @@ async def init_indexes():
     await get_product_collection().create_index("category")
     await get_product_collection().create_index("metal")
     await get_product_collection().create_index("purity")
-    await get_product_collection().create_index("stock_status")
-    await get_product_collection().create_index("tags")
     await get_product_collection().create_index("weight")
     await get_product_collection().create_index("price")
     await get_product_collection().create_index("created_at")

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import androidx.core.content.FileProvider
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -50,7 +51,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -64,6 +65,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
@@ -144,11 +146,10 @@ import com.onsgold.admin.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.WeekFields
+import java.io.File
 import java.util.Locale
 
 private val ProductCategories = listOf(
@@ -157,8 +158,7 @@ private val ProductCategories = listOf(
     "Maang Tikka", "Bracelet", "Bangle", "Kada", "Anklet", "Toe Ring", "Armlet",
     "Kamarbandh", "Brooch", "Temple Jewelry", "Gold Coin",
 )
-private val StockOptions = listOf("in_stock", "low_stock", "out_of_stock", "made_to_order")
-private val OrderStatusOptions = listOf("new", "contacted", "quoted", "closed")
+private val OrderStatusOptions = listOf("new", "contacted", "in_making", "closed", "delivered")
 private val SeverityOptions = listOf("Urgent", "High", "Medium", "Low")
 
 private enum class RootDestination(val title: String) {
@@ -182,9 +182,6 @@ private val StatusClosed = Color(0xFF22C55E)
 
 // Stock dot colors
 private val StockInColor = Color(0xFF22C55E)
-private val StockLowColor = Color(0xFFF59E0B)
-private val StockOutColor = Color(0xFFEF4444)
-private val StockMadeColor = Color(0xFF3B82F6)
 
 // Role badge colors
 private val RoleSuperAdmin = Color(0xFF1E3A8A)
@@ -210,7 +207,9 @@ fun AdminApp(viewModel: AdminViewModel) {
         when {
             state.isBootstrapping -> BootScreen()
             !state.isAuthenticated -> LoginScreen(
-                loading = state.authLoading,
+                loginLoading = state.authLoading,
+                forgotOtpLoading = state.forgotOtpLoading,
+                forgotResetLoading = state.forgotResetLoading,
                 onLogin = viewModel::login,
                 onRequestForgotOtp = viewModel::requestForgotOtp,
                 onResetForgotPassword = viewModel::resetForgotPassword,
@@ -296,15 +295,7 @@ private fun BootScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary,
-                        MaterialTheme.colorScheme.background,
-                    ),
-                ),
-            ),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -367,7 +358,9 @@ private fun BrandHeader(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoginScreen(
-    loading: Boolean,
+    loginLoading: Boolean,
+    forgotOtpLoading: Boolean,
+    forgotResetLoading: Boolean,
     onLogin: (String, String) -> Unit,
     onRequestForgotOtp: (String) -> Unit,
     onResetForgotPassword: (String, String, String) -> Unit,
@@ -386,15 +379,7 @@ private fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary,
-                        MaterialTheme.colorScheme.background,
-                    ),
-                ),
-            ),
+            .background(NavBarBlue),
         contentAlignment = Alignment.Center,
     ) {
         Card(
@@ -450,9 +435,9 @@ private fun LoginScreen(
                     Button(
                         onClick = { onLogin(email.trim(), password) },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !loading && email.isNotBlank() && password.isNotBlank(),
+                        enabled = !loginLoading && email.isNotBlank() && password.isNotBlank(),
                     ) {
-                        if (loading) {
+                        if (loginLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
                                 strokeWidth = 2.dp,
@@ -476,8 +461,15 @@ private fun LoginScreen(
                     Button(
                         onClick = { onRequestForgotOtp(email.trim()) },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = email.isNotBlank(),
+                        enabled = !forgotOtpLoading && email.isNotBlank(),
                     ) {
+                        if (forgotOtpLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                         Text("Send OTP")
                     }
                     OutlinedTextField(
@@ -505,14 +497,25 @@ private fun LoginScreen(
                     Button(
                         onClick = { onResetForgotPassword(email.trim(), forgotOtp.trim(), newPassword) },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = email.isNotBlank() &&
+                        enabled = !forgotResetLoading &&
+                            email.isNotBlank() &&
                             forgotOtp.isNotBlank() &&
                             newPassword.isNotBlank() &&
                             newPassword == confirmPassword,
                     ) {
+                        if (forgotResetLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                         Text("Reset Password")
                     }
-                    TextButton(onClick = { forgotMode = false }) {
+                    TextButton(
+                        onClick = { forgotMode = false },
+                        enabled = !forgotOtpLoading && !forgotResetLoading,
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Back to sign in")
@@ -627,7 +630,6 @@ private fun HomeScreen(
     selectedOrder?.let { order ->
         OrderDetailSheet(
             order = order,
-            currentUser = state.currentUser,
             onDismiss = {
                 selectedOrderRef = null
                 selectedOrderKind = null
@@ -901,14 +903,10 @@ private fun ProductsScreen(
     val totalPages = maxOf(1, (total + pageSize - 1) / pageSize)
     var showFilter by remember { mutableStateOf(false) }
     var filterCategory by rememberSaveable { mutableStateOf("All") }
-    var filterMetal by rememberSaveable { mutableStateOf("All") }
-    var filterStock by rememberSaveable { mutableStateOf("All") }
 
-    val filtered = remember(products, filterCategory, filterMetal, filterStock) {
+    val filtered = remember(products, filterCategory) {
         products.filter { p ->
-            (filterCategory == "All" || p.category.equals(filterCategory, ignoreCase = true)) &&
-            (filterMetal == "All" || p.metal.equals(filterMetal, ignoreCase = true)) &&
-            (filterStock == "All" || p.stockStatus == filterStock)
+            filterCategory == "All" || p.category.equals(filterCategory, ignoreCase = true)
         }
     }
     val pullRefreshState = rememberPullRefreshState(refreshing = loading, onRefresh = onRefresh)
@@ -1018,12 +1016,8 @@ private fun ProductsScreen(
     if (showFilter) {
         ProductFilterDialog(
             category = filterCategory,
-            metal = filterMetal,
-            stock = filterStock,
-            onApply = { cat, met, stk ->
+            onApply = { cat ->
                 filterCategory = cat
-                filterMetal = met
-                filterStock = stk
                 showFilter = false
             },
             onDismiss = { showFilter = false },
@@ -1035,27 +1029,21 @@ private fun ProductsScreen(
 @Composable
 private fun ProductFilterDialog(
     category: String,
-    metal: String,
-    stock: String,
-    onApply: (String, String, String) -> Unit,
+    onApply: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var selectedCategory by rememberSaveable { mutableStateOf(category) }
-    var selectedMetal by rememberSaveable { mutableStateOf(metal) }
-    var selectedStock by rememberSaveable { mutableStateOf(stock) }
     var catExpanded by remember { mutableStateOf(false) }
-    var metalExpanded by remember { mutableStateOf(false) }
-    var stockExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Button(onClick = { onApply(selectedCategory, selectedMetal, selectedStock) }) { Text("Apply") }
+            Button(onClick = { onApply(selectedCategory) }) { Text("Apply") }
         },
         dismissButton = {
             TextButton(onClick = {
-                selectedCategory = "All"; selectedMetal = "All"; selectedStock = "All"
-                onApply("All", "All", "All")
+                selectedCategory = "All"
+                onApply("All")
             }) { Text("Clear All") }
         },
         title = { Text("Filter Products") },
@@ -1068,22 +1056,6 @@ private fun ProductFilterDialog(
                     onExpandedChange = { catExpanded = it },
                     options = listOf("All") + ProductCategories,
                     onSelected = { selectedCategory = it; catExpanded = false },
-                )
-                DropdownField(
-                    label = "Metal",
-                    value = selectedMetal,
-                    expanded = metalExpanded,
-                    onExpandedChange = { metalExpanded = it },
-                    options = listOf("All", "gold", "silver"),
-                    onSelected = { selectedMetal = it; metalExpanded = false },
-                )
-                DropdownField(
-                    label = "Stock Status",
-                    value = selectedStock,
-                    expanded = stockExpanded,
-                    onExpandedChange = { stockExpanded = it },
-                    options = listOf("All") + StockOptions,
-                    onSelected = { selectedStock = it; stockExpanded = false },
                 )
             }
         },
@@ -1124,37 +1096,24 @@ private fun ProductCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        StockDot(product.stockStatus)
-                        Text(
-                            labelize(product.stockStatus),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = stockDotColor(product.stockStatus),
-                            fontWeight = FontWeight.Medium,
-                        )
+                        product.metal?.takeIf { it.isNotBlank() }?.let {
+                            Text(
+                                labelize(it),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        product.weight?.takeIf { it > 0 }?.let {
+                            Text(
+                                "${String.format(Locale.US, "%.3f", it)} g",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun StockDot(stockStatus: String) {
-    Box(
-        modifier = Modifier
-            .size(8.dp)
-            .clip(CircleShape)
-            .background(stockDotColor(stockStatus)),
-    )
-}
-
-private fun stockDotColor(status: String): Color {
-    return when (status) {
-        "in_stock" -> StockInColor
-        "low_stock" -> StockLowColor
-        "out_of_stock" -> StockOutColor
-        "made_to_order" -> StockMadeColor
-        else -> StockInColor
     }
 }
 
@@ -1170,6 +1129,7 @@ private fun OrdersScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var showFilter by remember { mutableStateOf(false) }
     var statusFilter by rememberSaveable { mutableStateOf("all") }
+    var page by rememberSaveable { mutableStateOf(1) }
     val filtered = remember(query, orders, statusFilter) {
         orders.filter { order ->
             (statusFilter == "all" || order.status == statusFilter) &&
@@ -1177,15 +1137,24 @@ private fun OrdersScreen(
                 order.orderRef,
                 order.customerName,
                 order.phone,
-                order.city,
-                order.jewelryType,
-                order.budget,
-                order.description,
                 order.products.joinToString(" ") { "${it.productId} ${it.title}" },
             ).joinToString(" ").contains(query, ignoreCase = true))
         }
     }
+    val totalPages = maxOf(1, (filtered.size + AdminViewModel.PAGE_SIZE - 1) / AdminViewModel.PAGE_SIZE)
+    val visiblePage = page.coerceIn(1, totalPages)
+    val pagedOrders = remember(filtered, visiblePage) {
+        val start = (visiblePage - 1) * AdminViewModel.PAGE_SIZE
+        filtered.drop(start).take(AdminViewModel.PAGE_SIZE)
+    }
     val pullRefreshState = rememberPullRefreshState(refreshing = loading, onRefresh = onRefresh)
+
+    LaunchedEffect(query, statusFilter, orders.size) {
+        page = 1
+    }
+    LaunchedEffect(totalPages) {
+        if (page > totalPages) page = totalPages
+    }
 
     Column(
         modifier = Modifier
@@ -1200,9 +1169,12 @@ private fun OrdersScreen(
         ) {
             OutlinedTextField(
                 value = query,
-                onValueChange = { query = it },
+                onValueChange = {
+                    query = it
+                    page = 1
+                },
                 modifier = Modifier.weight(1f),
-                label = { Text("Search orders") },
+                label = { Text("Search by name, order ID, or mobile number") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 singleLine = true,
             )
@@ -1239,7 +1211,7 @@ private fun OrdersScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    items(filtered) { order ->
+                    items(pagedOrders) { order ->
                         OrderRowCard(order = order, onClick = { onOpenOrder(order) })
                     }
                 }
@@ -1250,6 +1222,35 @@ private fun OrdersScreen(
                 modifier = Modifier.align(Alignment.TopCenter),
                 backgroundColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SheetActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Previous page",
+                enabled = visiblePage > 1,
+                onClick = { page = visiblePage - 1 },
+            )
+            Text(
+                text = "Page $visiblePage of $totalPages",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SheetActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Next page",
+                enabled = visiblePage < totalPages,
+                onClick = { page = visiblePage + 1 },
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "${filtered.size} order${if (filtered.size == 1) "" else "s"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -1320,8 +1321,11 @@ private fun OrderRowCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(order.orderRef, fontWeight = FontWeight.Bold)
-                    Text(order.customerName, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(order.customerName, fontWeight = FontWeight.Bold)
+                    Text(
+                        listOf(order.phone, order.orderRef).filter { it.isNotBlank() }.joinToString(" • "),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     AssistChip(
@@ -1348,7 +1352,7 @@ private fun OrderRowCard(
                     Text(order.phone, style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            Text(formatDate(order.createdAt), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Order received on: ${formatDate(order.createdAt)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -1358,8 +1362,9 @@ private fun StatusPill(status: String) {
     val color = when (status) {
         "new" -> StatusNew
         "contacted" -> StatusContacted
-        "quoted" -> StatusQuoted
+        "in_making" -> StatusQuoted
         "closed" -> StatusClosed
+        "delivered" -> StockInColor
         else -> StatusNew
     }
     Surface(
@@ -1676,43 +1681,31 @@ private fun ActivityLogsScreen(
     onRefresh: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    var dateFilter by rememberSaveable { mutableStateOf("all") }
-    val filtered = remember(query, activityLogs, dateFilter) {
-        val now = LocalDate.now()
+    var page by rememberSaveable { mutableStateOf(1) }
+    val filtered = remember(query, activityLogs) {
         activityLogs.filter { log ->
-            val matchesDate = when (dateFilter) {
-                "today" -> runCatching {
-                    OffsetDateTime.parse(log.createdAt)
-                        .atZoneSameInstant(ZoneId.systemDefault())
-                        .toLocalDate() == now
-                }.getOrElse { true }
-                "week" -> runCatching {
-                    val logDate = OffsetDateTime.parse(log.createdAt)
-                        .atZoneSameInstant(ZoneId.systemDefault())
-                        .toLocalDate()
-                    val weekFields = WeekFields.of(Locale.getDefault())
-                    logDate.get(weekFields.weekOfWeekBasedYear()) == now.get(weekFields.weekOfWeekBasedYear()) &&
-                        logDate.year == now.year
-                }.getOrElse { true }
-                "month" -> runCatching {
-                    val logDate = OffsetDateTime.parse(log.createdAt)
-                        .atZoneSameInstant(ZoneId.systemDefault())
-                        .toLocalDate()
-                    logDate.month == now.month && logDate.year == now.year
-                }.getOrElse { true }
-                else -> true
-            }
-            matchesDate && (query.isBlank() || listOf(
+            query.isBlank() || listOf(
                 log.action,
                 log.performedByName,
-                log.performedByEmail,
                 log.target,
-                log.detail,
                 log.oldValue?.toString(),
                 log.newValue?.toString(),
                 log.extra?.toString(),
-            ).joinToString(" ").contains(query, ignoreCase = true))
+            ).joinToString(" ").contains(query, ignoreCase = true)
         }
+    }
+    val totalPages = maxOf(1, (filtered.size + AdminViewModel.PAGE_SIZE - 1) / AdminViewModel.PAGE_SIZE)
+    val visiblePage = page.coerceIn(1, totalPages)
+    val pagedLogs = remember(filtered, visiblePage) {
+        val start = (visiblePage - 1) * AdminViewModel.PAGE_SIZE
+        filtered.drop(start).take(AdminViewModel.PAGE_SIZE)
+    }
+
+    LaunchedEffect(query, activityLogs.size) {
+        page = 1
+    }
+    LaunchedEffect(totalPages) {
+        if (page > totalPages) page = totalPages
     }
 
     Column(
@@ -1733,25 +1726,15 @@ private fun ActivityLogsScreen(
         }
         OutlinedTextField(
             value = query,
-            onValueChange = { query = it },
+            onValueChange = {
+                query = it
+                page = 1
+            },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Search logs") },
+            label = { Text("Search by user, product ID, order ID, or activity type") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             singleLine = true,
         )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            listOf("all" to "All", "today" to "Today", "week" to "This Week", "month" to "This Month").forEach { (key, label) ->
-                FilterChip(
-                    selected = dateFilter == key,
-                    onClick = { dateFilter = key },
-                    label = { Text(label) },
-                    leadingIcon = if (key != "all") {{ Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp)) }} else null,
-                )
-            }
-        }
         if (loading && activityLogs.isEmpty()) {
             LoadingCard("Loading activity logs")
         } else if (filtered.isEmpty()) {
@@ -1762,10 +1745,39 @@ private fun ActivityLogsScreen(
             )
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(filtered) { log ->
+                items(pagedLogs) { log ->
                     ActivityLogCard(log = log)
                 }
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SheetActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Previous page",
+                enabled = visiblePage > 1,
+                onClick = { page = visiblePage - 1 },
+            )
+            Text(
+                text = "Page $visiblePage of $totalPages",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SheetActionButton(
+                icon = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Next page",
+                enabled = visiblePage < totalPages,
+                onClick = { page = visiblePage + 1 },
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "${filtered.size} log${if (filtered.size == 1) "" else "s"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -2079,23 +2091,39 @@ private fun ProductEditorSheet(
     var metalExpanded by remember { mutableStateOf(false) }
     var purity by rememberSaveable(initial.productId) { mutableStateOf(initial.purity) }
     var weight by rememberSaveable(initial.productId) { mutableStateOf(initial.weight) }
-    var stock by rememberSaveable(initial.productId) { mutableStateOf(initial.stockStatus) }
-    var stockExpanded by remember { mutableStateOf(false) }
-    var tags by rememberSaveable(initial.productId) { mutableStateOf(initial.tags) }
     var description by rememberSaveable(initial.productId) { mutableStateOf(initial.description) }
+    val existingImages = remember(initial.productId) { mutableStateListOf<String>().apply { addAll(initial.existingImages) } }
     val selectedImages = remember(initial.productId) { mutableStateListOf<Uri>().apply { addAll(initial.newImages) } }
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var showImageSourceDialog by rememberSaveable(initial.productId) { mutableStateOf(false) }
+    var showValidation by rememberSaveable(initial.productId) { mutableStateOf(false) }
+    val context = LocalContext.current
+    val galleryPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (uris.isNotEmpty()) {
-            selectedImages.clear()
             selectedImages.addAll(uris)
         }
     }
-    val canSave = title.isNotBlank() &&
-        category.isNotBlank() &&
-        purity.isNotBlank() &&
-        description.length >= 10 &&
-        weight.toDoubleOrNull()?.let { it > 0 } == true &&
-        (selectedImages.isNotEmpty() || initial.existingImages.isNotEmpty())
+    val cameraPicker = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        val capturedUri = pendingCameraUri
+        pendingCameraUri = null
+        if (success && capturedUri != null) {
+            selectedImages.add(capturedUri)
+        }
+    }
+    val titleError = if (showValidation && title.trim().isBlank()) "Please enter title." else null
+    val categoryError = if (showValidation && category.trim().isBlank()) "Please enter category." else null
+    val weightValue = weight.trim()
+    val parsedWeight = weightValue.toDoubleOrNull()
+    val weightError = if (showValidation && weightValue.isNotBlank() && (parsedWeight == null || parsedWeight <= 0.0)) {
+        "Weight must be a valid number."
+    } else {
+        null
+    }
+    val imagesError = if (showValidation && existingImages.isEmpty() && selectedImages.isEmpty()) {
+        "Upload at least one product image."
+    } else {
+        null
+    }
     var confirmDelete by rememberSaveable(initial.productId) { mutableStateOf(false) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -2112,59 +2140,83 @@ private fun ProductEditorSheet(
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
-            OutlinedTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Title") })
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(requiredLabel("Title")) },
+                isError = titleError != null,
+                supportingText = { titleError?.let { Text(it) } },
+            )
             DropdownField(
-                label = "Category",
+                label = requiredLabel("Category"),
                 value = category,
                 expanded = categoryExpanded,
                 onExpandedChange = { categoryExpanded = it },
                 options = ProductCategories,
                 onSelected = { category = it; categoryExpanded = false },
+                isError = categoryError != null,
             )
+            categoryError?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
             DropdownField(
-                label = "Metal",
-                value = metal,
+                label = optionalLabel("Metal"),
+                value = metal.ifBlank { "not_selected" },
                 expanded = metalExpanded,
                 onExpandedChange = { metalExpanded = it },
-                options = listOf("gold", "silver"),
-                onSelected = { metal = it; metalExpanded = false },
+                options = listOf("not_selected", "gold", "silver"),
+                onSelected = {
+                    metal = if (it == "not_selected") "" else it
+                    metalExpanded = false
+                },
             )
-            OutlinedTextField(value = purity, onValueChange = { purity = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Purity") })
+            OutlinedTextField(
+                value = purity,
+                onValueChange = { purity = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(optionalLabel("Purity")) },
+            )
             OutlinedTextField(
                 value = weight,
                 onValueChange = { weight = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Weight (grams)") },
-                supportingText = { Text("") },
+                label = { Text(optionalLabel("Weight (grams)")) },
+                isError = weightError != null,
+                supportingText = {
+                    Text(weightError ?: "Leave blank if the weight is not available.")
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
-            DropdownField(
-                label = "Stock status",
-                value = stock,
-                expanded = stockExpanded,
-                onExpandedChange = { stockExpanded = it },
-                options = StockOptions,
-                onSelected = { stock = it; stockExpanded = false },
-            )
-            OutlinedTextField(value = tags, onValueChange = { tags = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Tags (comma separated)") })
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
-                label = { Text("Description") },
+                label = { Text(optionalLabel("Description")) },
             )
-            Text("Images", fontWeight = FontWeight.SemiBold)
-            if (initial.existingImages.isNotEmpty()) {
-                HorizontalImageRow(urls = initial.existingImages)
+            Text(requiredLabel("Images"), fontWeight = FontWeight.SemiBold)
+            imagesError?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+            if (existingImages.isNotEmpty()) {
+                RemovableImageRow(
+                    imageKeys = existingImages,
+                    imageModel = { it },
+                    onRemove = { existingImages.remove(it) },
+                )
             }
             if (selectedImages.isNotEmpty()) {
-                HorizontalImageRow(urls = selectedImages.map(Uri::toString))
+                RemovableImageRow(
+                    imageKeys = selectedImages.map(Uri::toString),
+                    imageModel = { Uri.parse(it) },
+                    onRemove = { key -> selectedImages.removeAll { it.toString() == key } },
+                )
             }
-            OutlinedButton(onClick = { imagePicker.launch("image/*") }) {
+            OutlinedButton(onClick = { showImageSourceDialog = true }) {
                 Icon(Icons.Default.Image, contentDescription = null)
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(if (selectedImages.isEmpty()) "Choose images" else "Replace images")
+                Text(if (existingImages.isEmpty() && selectedImages.isEmpty()) "Add images" else "Add more images")
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -2186,23 +2238,23 @@ private fun ProductEditorSheet(
                     }
                     Button(
                         onClick = {
-                            val parsedWeight = weight.toDoubleOrNull() ?: 0.0
+                            showValidation = true
+                            if (titleError != null || categoryError != null || weightError != null || imagesError != null) {
+                                return@Button
+                            }
                             onSave(
                                 ProductPayload(
                                     title = title.trim(),
                                     category = category.trim(),
-                                    metal = metal,
-                                    description = description.trim(),
-                                    purity = purity.trim(),
+                                    metal = metal.trim().takeIf { it.isNotBlank() },
+                                    description = description.trim().takeIf { it.isNotBlank() },
+                                    purity = purity.trim().takeIf { it.isNotBlank() },
                                     weight = parsedWeight,
-                                    images = initial.existingImages,
-                                    stockStatus = stock,
-                                    tags = tags.split(",").map { it.trim() }.filter { it.isNotBlank() },
+                                    images = existingImages.toList(),
                                 ),
                                 selectedImages.toList(),
                             )
                         },
-                        enabled = canSave,
                     ) {
                         Text(if (initial.productId == null) "Create" else "Save")
                     }
@@ -2221,6 +2273,24 @@ private fun ProductEditorSheet(
             },
         )
     }
+
+    if (showImageSourceDialog) {
+        ImageSourceDialog(
+            onDismiss = { showImageSourceDialog = false },
+            onPickGallery = {
+                showImageSourceDialog = false
+                galleryPicker.launch("image/*")
+            },
+            onPickCamera = {
+                showImageSourceDialog = false
+                val outputUri = createTempImageUri(context)
+                if (outputUri != null) {
+                    pendingCameraUri = outputUri
+                    cameraPicker.launch(outputUri)
+                }
+            },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -2232,19 +2302,21 @@ private fun DropdownField(
     onExpandedChange: (Boolean) -> Unit,
     options: List<String>,
     onSelected: (String) -> Unit,
+    isError: Boolean = false,
 ) {
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = onExpandedChange,
     ) {
         OutlinedTextField(
-            value = value,
+            value = labelize(value),
             onValueChange = {},
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(),
             readOnly = true,
             label = { Text(label) },
+            isError = isError,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         )
         ExposedDropdownMenu(
@@ -2292,11 +2364,91 @@ private fun HorizontalImageRow(
     }
 }
 
+@Composable
+private fun RemovableImageRow(
+    imageKeys: List<String>,
+    imageModel: (String) -> Any,
+    onRemove: (String) -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+    ) {
+        imageKeys.forEach { imageKey ->
+            Box(modifier = Modifier.size(84.dp)) {
+                AsyncImage(
+                    model = imageModel(imageKey),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .align(Alignment.BottomStart)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+                Surface(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.error,
+                ) {
+                    IconButton(
+                        onClick = { onRemove(imageKey) },
+                        modifier = Modifier.size(24.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Remove image",
+                            tint = MaterialTheme.colorScheme.onError,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImageSourceDialog(
+    onDismiss: () -> Unit,
+    onPickGallery: () -> Unit,
+    onPickCamera: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {},
+        dismissButton = {},
+        title = { Text("Add product images") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(onClick = onPickGallery, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Collections, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Choose from gallery")
+                }
+                OutlinedButton(onClick = onPickCamera, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Use camera")
+                }
+            }
+        },
+    )
+}
+
+private fun createTempImageUri(context: Context): Uri? {
+    return runCatching {
+        val imagesDir = File(context.cacheDir, "product_camera").apply { mkdirs() }
+        val tempFile = File.createTempFile("ons_product_", ".jpg", imagesDir)
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", tempFile)
+    }.getOrNull()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OrderDetailSheet(
     order: AdminOrderItem,
-    currentUser: UserResponse?,
     onDismiss: () -> Unit,
     onUpdateStatus: (String) -> Unit,
     onAddComment: (String) -> Unit,
@@ -2321,21 +2473,32 @@ private fun OrderDetailSheet(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(order.orderRef, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            ChipRow(values = listOf(labelize(order.orderKind.replace("_", " ")), labelize(draftStatus)))
-            Text("${order.customerName} • ${order.phone}")
-            Text(formatDate(order.createdAt), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = {
-                    val phone = normalizePhone(order.phone)
-                    if (phone.isNotBlank()) {
-                        val dialIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
-                        context.startActivity(dialIntent)
-                    }
-                }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Call ${order.phone}")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(order.customerName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                OutlinedButton(
+                    onClick = {
+                        val phone = normalizePhone(order.phone)
+                        if (phone.isNotBlank()) {
+                            val dialIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                            context.startActivity(dialIntent)
+                        }
+                    },
+                    shape = RoundedCornerShape(18.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                ) {
+                    Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(order.phone)
                 }
             }
+            ChipRow(values = listOf(labelize(order.orderKind.replace("_", " ")), labelize(draftStatus)))
+            DetailLine("Order ID", order.orderRef)
+            DetailLine("Order received on", formatDate(order.createdAt))
+            DetailLine("Last updated on", formatDate(order.updatedAt))
             OrderStatusSelector(current = draftStatus, onSelect = { draftStatus = it })
 
             if (order.orderKind == "custom_order") {
@@ -2395,13 +2558,6 @@ private fun OrderDetailSheet(
                 enabled = draftStatus != order.status,
             ) {
                 Text("Save Status")
-            }
-            currentUser?.let {
-                Text(
-                    "Signed in as ${it.name}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -2491,18 +2647,18 @@ private fun OrderStatusSelector(
     current: String,
     onSelect: (String) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Update status", fontWeight = FontWeight.SemiBold)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OrderStatusOptions.forEach { status ->
-                FilterChip(
-                    selected = current == status,
-                    onClick = { onSelect(status) },
-                    label = { Text(labelize(status)) },
-                )
-            }
-        }
-    }
+    var expanded by remember { mutableStateOf(false) }
+    DropdownField(
+        label = "Update status",
+        value = current,
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        options = OrderStatusOptions,
+        onSelected = {
+            onSelect(it)
+            expanded = false
+        },
+    )
 }
 
 @Composable
@@ -2934,6 +3090,10 @@ private fun labelize(value: String): String {
         }
 }
 
+private fun requiredLabel(value: String): String = "$value *"
+
+private fun optionalLabel(value: String): String = "$value (Optional)"
+
 private fun normalizePhone(value: String): String {
     return value.filter { it.isDigit() || it == '+' }
 }
@@ -2955,12 +3115,10 @@ private enum class ProfileDialogMode {
 private data class ProductEditorState(
     val productId: String? = null,
     val title: String = "",
-    val category: String = ProductCategories.first(),
-    val metal: String = "gold",
+    val category: String = "",
+    val metal: String = "",
     val purity: String = "",
     val weight: String = "",
-    val stockStatus: String = StockOptions.first(),
-    val tags: String = "",
     val description: String = "",
     val existingImages: List<String> = emptyList(),
     val newImages: List<Uri> = emptyList(),
@@ -2971,12 +3129,10 @@ private data class ProductEditorState(
                 productId = product.productId,
                 title = product.title,
                 category = product.category,
-                metal = product.metal,
-                purity = product.purity,
-                weight = String.format(Locale.US, "%.3f", product.weight),
-                stockStatus = product.stockStatus,
-                tags = product.tags.joinToString(", "),
-                description = product.description,
+                metal = product.metal.orEmpty(),
+                purity = product.purity.orEmpty(),
+                weight = product.weight?.let { String.format(Locale.US, "%.3f", it) }.orEmpty(),
+                description = product.description.orEmpty(),
                 existingImages = product.images,
             )
         }

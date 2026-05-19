@@ -28,7 +28,6 @@ class AdminRepository(
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
-        explicitNulls = false
     }
     private val sessionMutex = Mutex()
 
@@ -88,6 +87,7 @@ class AdminRepository(
                 phone = it.phone,
                 status = it.status,
                 createdAt = it.createdAt,
+                updatedAt = it.updatedAt ?: it.createdAt,
                 notes = it.notes,
                 inquirySource = it.inquirySource,
                 products = it.products,
@@ -104,6 +104,7 @@ class AdminRepository(
                 phone = it.phone,
                 status = it.status,
                 createdAt = it.createdAt,
+                updatedAt = it.updatedAt ?: it.createdAt,
                 inquirySource = it.inquirySource,
                 comments = it.comments,
                 city = it.city,
@@ -132,8 +133,9 @@ class AdminRepository(
 
     suspend fun updateProduct(productId: String, payload: ProductPayload, newImageUris: List<Uri>): ProductResponse {
         val token = requireToken()
-        val images = if (newImageUris.isEmpty()) payload.images else uploadProductImages(token, newImageUris)
-        return api.updateProduct(authHeader(token), productId, payload.copy(images = images))
+        val uploadedImages = if (newImageUris.isEmpty()) emptyList() else uploadProductImages(token, newImageUris)
+        val mergedImages = payload.images + uploadedImages
+        return api.updateProduct(authHeader(token), productId, payload.copy(images = mergedImages))
     }
 
     suspend fun deleteProduct(productId: String): String {

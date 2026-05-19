@@ -27,6 +27,16 @@
         android:roundIcon="@drawable/logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.OnsGoldAdmin" >
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.onsgold.admin.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name="com.onsgold.admin.MainActivity"
             android:exported="true"
@@ -37,12 +47,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="androidx.compose.ui.tooling.PreviewActivity"
-            android:exported="true" />
-        <activity
-            android:name="androidx.activity.ComponentActivity"
-            android:exported="true" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -58,6 +62,13 @@
                 android:name="androidx.profileinstaller.ProfileInstallerInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <activity
+            android:name="androidx.activity.ComponentActivity"
+            android:exported="true" />
+        <activity
+            android:name="androidx.compose.ui.tooling.PreviewActivity"
+            android:exported="true" />
 
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"

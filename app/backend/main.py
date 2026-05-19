@@ -2,6 +2,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -20,6 +21,52 @@ from services.cron_service import ensure_cronjob_document
 configure_logging()
 logger = get_logger(__name__)
 _index_init_task: asyncio.Task | None = None
+
+_FIELD_LABELS = {
+    "title": "title",
+    "category": "category",
+    "metal": "metal",
+    "description": "description",
+    "purity": "purity",
+    "weight": "weight",
+    "images": "product image",
+    "customer_name": "name",
+    "phone": "phone number",
+    "notes": "notes",
+    "city": "city",
+    "jewelry_type": "jewelry type",
+    "budget": "budget",
+    "comment": "comment",
+    "email": "email",
+    "otp": "OTP",
+    "name": "name",
+    "password": "password",
+    "current_password": "current password",
+    "new_password": "new password",
+}
+
+
+def _friendly_validation_message(exc: RequestValidationError) -> str:
+    error = exc.errors()[0] if exc.errors() else {}
+    location = [part for part in error.get("loc", []) if part not in {"body", "query", "path"}]
+    field_name = str(location[-1]) if location else ""
+    label = _FIELD_LABELS.get(field_name, field_name.replace("_", " ").strip())
+    error_type = str(error.get("type") or "")
+    message = str(error.get("msg") or "").removeprefix("Value error, ").strip()
+
+    if field_name == "images":
+        return "Upload at least one product image."
+    if error_type == "missing" and label:
+        return f"Please enter {label}."
+    if error_type.startswith("string_too_short") and label:
+        return f"Please enter {label}."
+    if error_type.startswith("list_too_short") and field_name == "images":
+        return "Upload at least one product image."
+    if "weight" in field_name and message:
+        return message if message.endswith(".") else f"{message}."
+    if message:
+        return message if message.endswith(".") else f"{message}."
+    return "Please check the form and try again."
 
 
 async def _init_indexes_in_background():
@@ -66,6 +113,14 @@ app.include_router(inquiries_router, prefix="/api/v1")
 app.include_router(uploads_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(cron_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(_, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"detail": _friendly_validation_message(exc)},
+    )
 
 
 @app.exception_handler(Exception)

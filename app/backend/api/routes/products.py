@@ -15,7 +15,6 @@ async def get_products(
     category: str | None = None,
     metal: str | None = None,
     purity: str | None = None,
-    stock_status: str | None = None,
     min_weight: float | None = None,
     max_weight: float | None = None,
     min_price: float | None = None,
@@ -30,7 +29,6 @@ async def get_products(
         category=category,
         metal=metal,
         purity=purity,
-        stock_status=stock_status,
         min_weight=min_weight,
         max_weight=max_weight,
         min_price=min_price,
@@ -91,8 +89,8 @@ async def update_product_route(
         performed_by_name=current_admin.get("name", ""),
         target=product.product_id,
         detail=f"Product updated: {product.title}.",
-        old_value={"product_id": before.product_id, "title": before.title, "category": before.category, "stock_status": before.stock_status},
-        new_value={"product_id": product.product_id, "title": product.title, "category": product.category, "stock_status": product.stock_status},
+        old_value={"product_id": before.product_id, "title": before.title, "category": before.category},
+        new_value={"product_id": product.product_id, "title": product.title, "category": product.category},
     )
     return product
 

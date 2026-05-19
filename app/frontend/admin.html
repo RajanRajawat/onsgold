@@ -3,744 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ONS Gold | Admin Portal</title>
+  <title>ONS Gold | Admin Portal Unavailable</title>
   <meta name="robots" content="noindex,nofollow" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/admin.css" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f3ec;
+      --panel: rgba(255, 255, 255, 0.92);
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --accent: #b8832f;
+      --accent-soft: rgba(184, 131, 47, 0.14);
+      --border: rgba(31, 41, 55, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(184, 131, 47, 0.18), transparent 34%),
+        linear-gradient(135deg, #f8f5ef 0%, #efe7dc 100%);
+    }
+
+    .notice {
+      width: min(100%, 560px);
+      padding: 36px 32px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(31, 41, 55, 0.12);
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(28px, 5vw, 40px);
+      line-height: 1.1;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .actions {
+      margin-top: 26px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 170px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .button-primary {
+      background: #1d4ed8;
+      color: #fff;
+    }
+
+    .button-secondary {
+      border-color: var(--border);
+      color: var(--ink);
+      background: #fff;
+    }
+  </style>
 </head>
 <body>
-  <div id="mobile-block">
-    <div class="mb-icon">OG</div>
-    <h2>Desktop Only</h2>
-    <p>The ONS Gold admin portal is designed for desktop use. Open it on a laptop or desktop for product and inquiry management.</p>
-  </div>
-
-  <div id="login-screen">
-    <div class="login-wrap">
-      <div class="login-panel">
-        <div class="login-logo">
-          <img src="assets/images/logo.png" alt="ONS Gold" class="admin-logo-image" />
-          <div>
-            <div class="login-logo-name">ONS Gold</div>
-            <span class="login-logo-sub">Admin Portal</span>
-          </div>
-        </div>
-        <h1 class="login-title">Admin <em>Portal</em></h1>
-        <p class="login-sub">Sign in to manage products, inquiries, custom orders, and analytics.</p>
-
-        <div id="login-form-section">
-          <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="l-email" placeholder="admin@onsgold.com" autocomplete="email" />
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <div class="password-field">
-              <input type="password" id="l-password" placeholder="••••••••" autocomplete="current-password" />
-              <button type="button" class="password-toggle" data-target="l-password" aria-label="Show password">Show</button>
-            </div>
-          </div>
-          <button class="btn-login" id="login-btn">Sign In</button>
-          <div id="login-error"></div>
-          <a class="forgot-link" id="forgot-link">Forgot password?</a>
-        </div>
-
-        <div id="forgot-form">
-          <div class="forgot-step active" id="forgot-step1">
-            <button class="forgot-back" id="forgot-back-btn">← Back to sign in</button>
-            <p class="forgot-copy">Enter your registered admin email and receive a reset OTP.</p>
-            <div class="form-group">
-              <label>Email Address</label>
-              <input type="email" id="fp-email" placeholder="admin@onsgold.com" />
-            </div>
-            <button class="btn-login" id="fp-send-btn">Send OTP</button>
-            <div id="fp-msg1" class="msg-box"></div>
-          </div>
-          <div class="forgot-step" id="forgot-step2">
-            <button class="forgot-back" id="forgot-back2-btn">← Back</button>
-            <p class="forgot-copy">Enter the OTP and your new password.</p>
-            <div class="form-group">
-              <label>OTP</label>
-              <input type="text" id="fp-otp" maxlength="6" placeholder="123456" />
-            </div>
-            <div class="form-group">
-              <label>New Password</label>
-              <input type="password" id="fp-new-password" placeholder="••••••••" />
-            </div>
-            <div class="form-group">
-              <label>Confirm New Password</label>
-              <input type="password" id="fp-confirm-password" placeholder="••••••••" />
-            </div>
-            <button class="btn-login" id="fp-reset-btn">Reset Password</button>
-            <div id="fp-msg2" class="msg-box"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="login-visual">
-        <div class="lv-tagline">Manage ONS Store<br />with <em>precision</em></div>
-      </div>
+  <main class="notice">
+    <div class="badge">Admin Portal Unavailable On Web</div>
+    <h1>Use the ONS Gold Admin APK</h1>
+    <p>The admin portal is not available currently on web. Please contact the admin team and use the Android APK only for product, order, and account management.</p>
+    <div class="actions">
+      <a class="button button-primary" href="mailto:work4rajan@gmail.com">Contact Admin</a>
+      <a class="button button-secondary" href="index.html">Open Storefront</a>
     </div>
-  </div>
-
-  <div id="dashboard">
-    <aside class="sidebar" id="dashboard-sidebar">
-      <div class="sidebar-logo">
-        <img src="assets/images/logo.png" alt="ONS Gold" class="admin-logo-image" />
-        <div>
-          <div class="sidebar-logo-text">ONS Gold</div>
-          <div class="sidebar-logo-sub">Admin Portal</div>
-        </div>
-        <button class="sidebar-close" id="sidebar-close-btn" type="button" aria-label="Close navigation">×</button>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-label">Main</div>
-        <button class="nav-item active" data-panel="products">
-          <svg viewBox="0 0 24 24"><path d="M7 4h10l1 2h3v2h-1l-1.68 8.39A2 2 0 0 1 16.36 18H8a2 2 0 0 1-1.96-1.61L4.36 8H3V6h3l1-2zm1.24 2-.5 1h8.52l-.5-1H8.24zM8 20a2 2 0 1 0 0 .01V20zm8 0a2 2 0 1 0 0 .01V20z"/></svg>
-          Products
-        </button>
-        <button class="nav-item" data-panel="orders">
-          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-          Orders
-        </button>
-      </div>
-
-      <div class="sidebar-section" id="super-admin-nav-section">
-        <div class="sidebar-section-label">Admin</div>
-        <button class="nav-item" data-panel="admins">
-          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-          Manage Admins
-        </button>
-        <button class="nav-item" data-panel="activity-logs">
-          <svg viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h10.59A2 2 0 0 1 17 3.59L20.41 7A2 2 0 0 1 21 8.41V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm4 3h10V6H7v2zm0 4h10v-2H7v2zm0 4h7v-2H7v2z"/></svg>
-          Activity Logs
-        </button>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-section-label">Account</div>
-        <button class="nav-item" data-panel="account">
-          <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-          Edit Profile
-        </button>
-        <button class="nav-item" id="sidebar-report-bug-btn" type="button">
-          <svg viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C13 5.06 12.51 5 12 5s-1 .06-1.42.17L8.41 3 7 4.41l1.63 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.06.33-.09.66-.09 1v1H4v2h2v1c0 .34.03.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.06-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.03-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
-          Report Bug
-        </button>
-      </div>
-
-      <div class="sidebar-user">
-        <div class="user-avatar" id="sidebar-avatar">A</div>
-        <div>
-          <div class="user-name" id="sidebar-name">Admin</div>
-          <div class="user-role" id="sidebar-role">admin</div>
-        </div>
-        <button class="btn-logout" id="logout-btn" title="Sign out" type="button" aria-label="Sign out">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15 3h-4a2 2 0 0 0-2 2v3h2V5h4v14h-4v-3H9v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z"/>
-            <path d="M10 12H3"/>
-            <path d="m6 9-3 3 3 3"/>
-          </svg>
-        </button>
-      </div>
-    </aside>
-
-    <button class="sidebar-overlay" id="sidebar-overlay" type="button" aria-label="Close navigation"></button>
-
-    <div class="main">
-      <div class="topbar">
-        <div class="topbar-left">
-          <button class="topbar-menu-btn" id="sidebar-toggle-btn" type="button" aria-label="Open navigation">☰</button>
-          <div class="topbar-title" id="topbar-title">Products</div>
-        </div>
-        <div class="topbar-right">
-          <button class="btn-report-bug" id="report-bug-btn" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C13 5.06 12.51 5 12 5s-1 .06-1.42.17L8.41 3 7 4.41l1.63 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.06.33-.09.66-.09 1v1H4v2h2v1c0 .34.03.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.06-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.03-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
-            Report Bug
-          </button>
-          <div class="topbar-user-chip">
-            <div class="topbar-user-avatar" id="topbar-avatar">A</div>
-            <div class="topbar-user-name" id="topbar-name">Admin</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="content">
-        <section class="panel active" id="panel-products">
-          <div class="page-header">
-            <h2>Product Management</h2>
-            <p>Create, edit, and remove wholesale catalog products with multiple image uploads.</p>
-          </div>
-
-          <div class="table-card">
-            <div class="table-header">
-              <div class="table-title">All Products</div>
-              <div class="table-actions">
-                <input class="search-input" id="products-search" placeholder="Search name, product ID, category" />
-                <div class="icon-action-row">
-                  <button class="icon-pill-btn" id="products-prev-btn" type="button" aria-label="Previous page" title="Previous page">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                  </button>
-                  <button class="icon-pill-btn" id="products-next-btn" type="button" aria-label="Next page" title="Next page">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                  </button>
-                  <button class="icon-pill-btn" id="products-refresh-btn" type="button" aria-label="Refresh products" title="Refresh products">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v6h-6"/></svg>
-                  </button>
-                  <button class="icon-pill-btn icon-pill-btn-primary" id="products-add-btn" type="button" aria-label="Add product" title="Add product">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Metal</th>
-                    <th>Purity</th>
-                    <th>Weight</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="products-table-body">
-                  <tr><td colspan="6"><div class="empty-state">No products loaded yet.</div></td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="table-pagination">
-              <div class="table-pagination-info" id="products-page-info">Page 1 of 1</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-orders">
-          <div class="page-header">
-            <h2>Orders</h2>
-            <p>Review all catalog orders and custom order requests in one place and keep statuses updated.</p>
-          </div>
-
-          <div class="table-card">
-            <div class="table-header">
-              <div class="table-title">All Orders</div>
-              <div class="table-actions">
-                <input class="search-input" id="orders-search" placeholder="Search order, customer, phone, product ID" />
-                <button class="btn-sm btn-outline" id="orders-refresh-btn" type="button">Refresh</button>
-              </div>
-            </div>
-            <div class="table-scroll">
-              <table class="orders-table">
-                <thead>
-                  <tr>
-                    <th>Ord ID</th>
-                    <th>Customer</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="orders-table-body">
-                  <tr><td colspan="6"><div class="empty-state">No orders loaded yet.</div></td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="table-pagination">
-              <div class="table-pagination-info" id="orders-page-info">Page 1 of 1</div>
-              <div class="table-pagination-actions">
-                <button class="btn-sm btn-outline" id="orders-prev-btn" type="button">Previous</button>
-                <button class="btn-sm btn-outline" id="orders-next-btn" type="button">Next</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-admins">
-          <div class="page-header">
-            <h2>Manage Admins</h2>
-            <p>Add, remove, or edit admin accounts. Credentials are emailed automatically.</p>
-          </div>
-
-          <div class="admin-management-grid">
-            <div class="form-card admin-form-card">
-              <div class="form-card-title">New Admin Account</div>
-              <div class="field-group"><label>Full Name</label><input type="text" id="r-name" placeholder="Jane Doe" /></div>
-              <div class="field-group"><label>Email Address</label><input type="email" id="r-email" placeholder="jane@onsgold.com" /></div>
-              <div id="register-otp-section" style="display:none;">
-                <div class="field-group">
-                  <label>Enter OTP sent to your email</label>
-                  <input type="text" id="r-otp" placeholder="6-digit OTP" maxlength="6" />
-                  <div class="otp-hint">OTP sent to your registered super admin email.</div>
-                </div>
-              </div>
-              <div class="form-actions admin-form-actions">
-                <button class="btn-sm btn-outline admin-flow-btn" id="register-otp-btn" type="button">Request OTP</button>
-                <button class="btn-sm btn-accent admin-flow-btn" id="register-btn" type="button" style="display:none;">Create Admin Account</button>
-              </div>
-              <div class="msg-box" id="register-msg"></div>
-            </div>
-
-            <div class="form-card admin-form-card admin-remove-card">
-              <div class="form-card-title">Remove Admin Account</div>
-              <p class="admin-helper-copy">Enter admin email and request OTP to your email to confirm permanent deletion.</p>
-              <div class="field-group"><label>Admin Email Address</label><input type="email" id="da-email" placeholder="admin@onsgold.com" /></div>
-              <div id="da-otp-section" style="display:none;">
-                <div class="field-group">
-                  <label>Enter OTP sent to your email</label>
-                  <input type="text" id="da-otp" placeholder="6-digit OTP" maxlength="6" />
-                  <div class="otp-hint">OTP sent to your registered super admin email.</div>
-                </div>
-              </div>
-              <div class="form-actions admin-form-actions">
-                <button class="btn-sm btn-outline admin-flow-btn" id="da-otp-btn" type="button">Request OTP</button>
-                <button class="btn-sm btn-danger admin-flow-btn" id="da-btn" type="button" style="display:none;">Confirm Delete</button>
-              </div>
-              <div class="msg-box" id="da-msg"></div>
-            </div>
-          </div>
-
-          <div class="table-card">
-            <div class="table-header">
-              <div class="table-title">All Active Admins</div>
-              <div class="table-actions">
-                <button class="btn-sm btn-outline" id="admins-refresh-btn" type="button">Refresh</button>
-              </div>
-            </div>
-            <div id="admins-list-body">
-              <div class="empty-state">No admin accounts loaded yet.</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-activity-logs">
-          <div class="page-header">
-            <h2>Activity Logs</h2>
-            <p>Audit trail for super admin visibility across login events, orders, products, admin actions, and profile changes.</p>
-          </div>
-
-          <div class="table-card">
-            <div class="table-header">
-              <div class="table-title" id="activity-log-count">0 Logs</div>
-              <div class="table-actions">
-                <input class="search-input" id="activity-search" placeholder="Filter by action, admin, target" />
-                <button class="btn-sm btn-outline" id="activity-refresh-btn" type="button">Refresh</button>
-              </div>
-            </div>
-            <div class="table-scroll">
-              <table class="activity-table">
-                <thead>
-                  <tr>
-                    <th>Action</th>
-                    <th>Performed By</th>
-                    <th>Target</th>
-                    <th>Details</th>
-                    <th>Time</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="activity-table-body">
-                  <tr><td colspan="6"><div class="empty-state">No activity logs loaded yet.</div></td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="table-pagination">
-              <div class="table-pagination-info" id="activity-page-info">Page 1 of 1</div>
-              <div class="table-pagination-actions">
-                <button class="btn-sm btn-outline" id="activity-prev-btn" type="button">Previous</button>
-                <button class="btn-sm btn-outline" id="activity-next-btn" type="button">Next</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-account">
-          <div class="page-header">
-            <h2>Edit Profile</h2>
-            <p>Manage your account details: name, password, and email.</p>
-          </div>
-
-          <div class="form-card profile-settings-card">
-            <div class="form-card-title">Account Settings</div>
-            <div class="profile-setting-row">
-              <div>
-                <div class="profile-setting-label">Display Name</div>
-                <div class="profile-setting-value" id="profile-name-display">-</div>
-              </div>
-              <button class="btn-sm btn-outline" type="button" data-profile-modal="name">Change Name</button>
-            </div>
-            <div class="profile-setting-row">
-              <div>
-                <div class="profile-setting-label">Email Address</div>
-                <div class="profile-setting-value" id="profile-email-display">-</div>
-              </div>
-              <button class="btn-sm btn-outline" type="button" data-profile-modal="email">Change Email</button>
-            </div>
-            <div class="profile-setting-row">
-              <div>
-                <div class="profile-setting-label">Password</div>
-                <div class="profile-setting-value">Last changed from this portal</div>
-              </div>
-              <button class="btn-sm btn-outline" type="button" data-profile-modal="password">Change Password</button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="bug-report-modal">
-    <div class="modal sheet-modal bug-sheet-modal">
-      <button class="modal-close" id="bug-modal-close" type="button" aria-label="Close">&times;</button>
-      <div class="bug-modal-head">
-        <div class="bug-modal-icon">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C13 5.06 12.51 5 12 5s-1 .06-1.42.17L8.41 3 7 4.41l1.63 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.06.33-.09.66-.09 1v1H4v2h2v1c0 .34.03.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.06-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.03-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
-        </div>
-        <div>
-          <h3 class="modal-title">Report a Bug</h3>
-          <p>Send a bug report to work@rajanrajawat.in.</p>
-        </div>
-      </div>
-
-      <div class="field-group" id="pdm-current-images-wrap">
-        <label>Bug Title</label>
-        <input type="text" id="bug-title" placeholder="Brief description of the bug" />
-      </div>
-      <div class="field-group">
-        <label>Severity</label>
-        <select id="bug-severity" class="severity-select">
-          <option value="">Select severity</option>
-          <option value="Urgent">Urgent - Security or data issue</option>
-          <option value="High">High - Critical functionality broken</option>
-          <option value="Medium">Medium - Feature partially broken</option>
-          <option value="Low">Low - Minor or UI issue</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label>Description</label>
-        <textarea id="bug-description" placeholder="Describe what happened, steps to reproduce, expected vs actual behavior"></textarea>
-      </div>
-      <div class="field-group">
-        <label>Screenshot</label>
-        <label class="img-upload-label" for="bug-image-input">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-          <span id="bug-img-label-text">Attach screenshot (PNG, JPG, WEBP - max 4 MB)</span>
-        </label>
-        <input type="file" id="bug-image-input" accept="image/png,image/jpeg,image/webp" />
-        <img id="bug-img-preview" alt="Bug screenshot preview" />
-      </div>
-      <button class="btn-sm btn-danger modal-wide-btn" id="bug-submit-btn" type="button">Submit Bug Report</button>
-      <div class="msg-box" id="bug-msg"></div>
-    </div>
-  </div>
-
-  <div id="toast"></div>
-
-  <div class="modal-overlay" id="profile-modal">
-    <div class="modal" style="max-width:440px;">
-      <button class="modal-close" id="profile-modal-close" type="button" aria-label="Close">×</button>
-
-      <div id="profile-modal-name">
-        <div class="profile-modal-head">
-          <div class="profile-modal-icon">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-          </div>
-          <h3 class="modal-title">Change Display Name</h3>
-        </div>
-        <div class="field-group"><label>New Display Name</label><input type="text" id="pm-name" placeholder="Jane Doe" /></div>
-        <div class="msg-box" id="pm-name-msg"></div>
-        <button class="btn-sm btn-accent modal-wide-btn" id="pm-name-btn" type="button">Save Name</button>
-      </div>
-
-      <div id="profile-modal-password" style="display:none;">
-        <div class="profile-modal-head">
-          <div class="profile-modal-icon">
-            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-          </div>
-          <h3 class="modal-title">Change Password</h3>
-        </div>
-        <div class="field-group"><label>Current Password</label><input type="password" id="pm-old-pwd" placeholder="Current password" /></div>
-        <div class="field-group"><label>New Password</label><input type="password" id="pm-new-pwd" placeholder="New password" /></div>
-        <div class="field-group"><label>Confirm New Password</label><input type="password" id="pm-confirm-pwd" placeholder="Confirm password" /></div>
-        <div class="msg-box" id="pm-pwd-msg"></div>
-        <button class="btn-sm btn-accent modal-wide-btn" id="pm-pwd-btn" type="button">Save Password</button>
-      </div>
-
-      <div id="profile-modal-email" style="display:none;">
-        <div class="profile-modal-head">
-          <div class="profile-modal-icon">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
-          </div>
-          <h3 class="modal-title">Change Email Address</h3>
-        </div>
-        <div class="field-group"><label>New Email Address</label><input type="email" id="pm-email" placeholder="new@onsgold.com" /></div>
-        <div class="field-group"><label>Current Password</label><input type="password" id="pm-email-pwd" placeholder="Current password" /></div>
-        <div class="msg-box" id="pm-email-msg"></div>
-        <button class="btn-sm btn-accent modal-wide-btn" id="pm-email-btn" type="button">Save Email</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="admin-detail-modal">
-    <div class="modal" style="max-width:480px;">
-      <button class="modal-close" id="admin-detail-close" type="button" aria-label="Close">×</button>
-      <div class="admin-detail-avatar" id="adm-avatar">A</div>
-      <h3 class="modal-title admin-modal-title" id="adm-modal-name">Admin Details</h3>
-
-      <div id="adm-info-rows">
-        <div class="admin-detail-row"><div class="admin-detail-label">Full Name</div><div class="admin-detail-val" id="adm-modal-fullname">-</div></div>
-        <div class="admin-detail-row"><div class="admin-detail-label">Email</div><div class="admin-detail-val" id="adm-modal-email">-</div></div>
-        <div class="admin-detail-row"><div class="admin-detail-label">Roles</div><div class="admin-detail-val" id="adm-modal-roles">-</div></div>
-        <div class="admin-detail-row"><div class="admin-detail-label">ID</div><div class="admin-detail-val" id="adm-modal-id">-</div></div>
-      </div>
-
-      <hr class="modal-divider" />
-
-      <div id="adm-super-actions">
-        <button class="btn-sm btn-outline modal-wide-btn" type="button" id="adm-edit-toggle-btn">Edit Credentials</button>
-        <div id="adm-edit-section" style="display:none;">
-          <p class="admin-helper-copy">Leave a field blank to keep it unchanged. An OTP will be sent to your email to confirm.</p>
-          <div class="field-group"><label>New Email (optional)</label><input type="email" id="adm-edit-email" placeholder="new@onsgold.com" /></div>
-          <div class="field-group"><label>New Password (optional)</label><input type="password" id="adm-edit-password" placeholder="New password" /></div>
-          <button class="btn-sm btn-accent modal-wide-btn" id="adm-edit-otp-btn" type="button">Send OTP to My Email</button>
-          <div id="adm-otp-section" style="display:none;">
-            <div class="field-group">
-              <label>Enter OTP</label>
-              <input type="text" id="adm-edit-otp" placeholder="6-digit OTP" maxlength="6" />
-              <div class="otp-hint">OTP sent to your registered super admin email.</div>
-            </div>
-            <button class="btn-sm btn-accent modal-wide-btn" id="adm-save-creds-btn" type="button">Save Changes</button>
-          </div>
-          <div class="msg-box" id="adm-edit-msg"></div>
-        </div>
-
-        <hr class="modal-divider" />
-
-        <button class="btn-sm btn-danger-outline modal-wide-btn" type="button" id="adm-delete-toggle-btn">Remove Admin</button>
-        <div id="adm-delete-section" style="display:none;">
-          <p class="admin-helper-copy">This permanently removes the admin account after OTP confirmation.</p>
-          <button class="btn-sm btn-danger-outline modal-wide-btn" id="adm-delete-otp-btn" type="button">Send Delete OTP</button>
-          <div id="adm-delete-otp-section" style="display:none;">
-            <div class="field-group">
-              <label>Enter OTP</label>
-              <input type="text" id="adm-delete-otp" placeholder="6-digit OTP" maxlength="6" />
-            </div>
-            <button class="btn-sm btn-danger modal-wide-btn" id="adm-confirm-delete-btn" type="button">Confirm Delete</button>
-          </div>
-          <div class="msg-box" id="adm-delete-msg"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="order-detail-modal">
-    <div class="modal order-detail-modal sheet-modal">
-      <button class="modal-close" id="order-detail-close" type="button" aria-label="Close">×</button>
-      <h3 class="modal-title" id="order-modal-title">Order Details</h3>
-
-      <div class="sheet-detail-grid">
-        <div class="modal-section">
-          <div class="modal-label">Order ID</div>
-          <div class="modal-val" id="order-modal-id">-</div>
-        </div>
-        <div class="modal-section">
-          <div class="modal-label">Type</div>
-          <div id="order-modal-type">-</div>
-        </div>
-        <div class="modal-section">
-          <div class="modal-label">Customer</div>
-          <div class="modal-val" id="order-modal-customer">-</div>
-        </div>
-        <div class="modal-section">
-          <div class="modal-label">Created</div>
-          <div class="modal-val" id="order-modal-created">-</div>
-        </div>
-      </div>
-
-      <div class="modal-section">
-        <div class="modal-label">Status</div>
-        <select class="order-status-select" id="order-modal-status"></select>
-      </div>
-
-      <div class="modal-section">
-        <div class="modal-label">Order Details</div>
-        <div class="modal-val modal-val-box" id="order-modal-details">-</div>
-      </div>
-
-      <div class="modal-section" id="order-modal-images-wrap" style="display:none;">
-        <div class="modal-label">Reference Images</div>
-        <div class="modal-val modal-val-box" id="order-modal-images">-</div>
-      </div>
-
-      <div class="modal-section" style="margin-top:18px;">
-        <div class="modal-label">Comments</div>
-        <div class="comment-list" id="order-modal-comments"></div>
-        <textarea class="comment-input" id="order-comment-text" placeholder="Add a comment or note..."></textarea>
-        <button class="btn-sm btn-accent modal-wide-btn" id="order-add-comment-btn" type="button">Add Comment</button>
-        <div class="msg-box" id="order-comment-msg"></div>
-      </div>
-
-      <div class="sheet-footer">
-        <button class="btn-sm btn-outline" id="order-save-status-btn" type="button">Save Status</button>
-        <button class="btn-card-delete order-delete-btn" id="order-delete-btn" type="button" title="Delete order" aria-label="Delete order">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 3h6"></path>
-            <path d="M4 7h16"></path>
-            <path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"></path>
-            <path d="M10 11v6"></path>
-            <path d="M14 11v6"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="activity-detail-modal">
-    <div class="modal activity-detail-modal">
-      <button class="modal-close" id="activity-detail-close" type="button" aria-label="Close">&times;</button>
-      <h3 class="modal-title" id="activity-modal-title">Activity Detail</h3>
-
-      <div class="activity-detail-grid">
-        <div class="modal-section">
-          <div class="modal-label">Action</div>
-          <div id="activity-modal-action">-</div>
-        </div>
-        <div class="modal-section">
-          <div class="modal-label">Time</div>
-          <div class="modal-val" id="activity-modal-time">-</div>
-        </div>
-        <div class="modal-section">
-          <div class="modal-label">Performed By</div>
-          <div class="modal-val" id="activity-modal-performed-by">-</div>
-        </div>
-        <div class="modal-section">
-          <div class="modal-label">Target</div>
-          <div class="modal-val" id="activity-modal-target">-</div>
-        </div>
-      </div>
-
-      <div class="modal-section">
-        <div class="modal-label">Details</div>
-        <div class="modal-val modal-val-box" id="activity-modal-detail">-</div>
-      </div>
-
-      <div class="modal-section" id="activity-modal-old-wrap" style="display:none;">
-        <div class="modal-label">Old Value</div>
-        <pre class="activity-json-box" id="activity-modal-old"></pre>
-      </div>
-
-      <div class="modal-section" id="activity-modal-new-wrap" style="display:none;">
-        <div class="modal-label">New Value</div>
-        <pre class="activity-json-box" id="activity-modal-new"></pre>
-      </div>
-
-      <div class="modal-section" id="activity-modal-extra-wrap" style="display:none;">
-        <div class="modal-label">Extra</div>
-        <pre class="activity-json-box" id="activity-modal-extra"></pre>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="product-detail-modal">
-    <div class="modal product-modal sheet-modal">
-      <button class="modal-close" id="product-detail-close" type="button" aria-label="Close">×</button>
-      <div class="product-modal-head">
-        <div>
-          <h3 class="modal-title" id="pdm-title">Edit Product</h3>
-          <p class="product-modal-copy" id="pdm-copy">Update product details, replace images, or remove the product from this slider.</p>
-        </div>
-      </div>
-
-      <div class="product-modal-id" id="pdm-product-id">-</div>
-
-      <div class="field-group">
-        <label>Current Images</label>
-        <div class="product-image-grid" id="pdm-current-images"></div>
-      </div>
-
-      <form id="product-detail-form">
-        <div class="field-group"><label>Product Name</label><input type="text" id="pdm-product-title" required /></div>
-        <div class="field-row">
-          <div class="field-group">
-            <label>Category</label>
-            <select id="pdm-product-category" required>
-              <option value="">Select jewelry category</option>
-              <option value="Ring">Ring</option>
-              <option value="Necklace">Necklace</option>
-              <option value="Chain">Chain</option>
-              <option value="Pendant">Pendant</option>
-              <option value="Locket">Locket</option>
-              <option value="Mangalsutra">Mangalsutra</option>
-              <option value="Choker">Choker</option>
-              <option value="Haram">Haram</option>
-              <option value="Bridal Set">Bridal Set</option>
-              <option value="Jewelry Set">Jewelry Set</option>
-              <option value="Earrings">Earrings</option>
-              <option value="Jhumka">Jhumka</option>
-              <option value="Bali">Bali</option>
-              <option value="Stud">Stud</option>
-              <option value="Nose Pin">Nose Pin</option>
-              <option value="Nath">Nath</option>
-              <option value="Maang Tikka">Maang Tikka</option>
-              <option value="Bracelet">Bracelet</option>
-              <option value="Bangle">Bangle</option>
-              <option value="Kada">Kada</option>
-              <option value="Anklet">Anklet</option>
-              <option value="Toe Ring">Toe Ring</option>
-              <option value="Armlet">Armlet</option>
-              <option value="Kamarbandh">Kamarbandh</option>
-              <option value="Brooch">Brooch</option>
-              <option value="Temple Jewelry">Temple Jewelry</option>
-              <option value="Gold Coin">Gold Coin</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label>Metal</label>
-            <select id="pdm-product-metal" required>
-              <option value="gold">Gold</option>
-              <option value="silver">Silver</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group"><label>Purity</label><input type="text" id="pdm-product-purity" required /></div>
-          <div class="field-group"><label>Weight</label><input type="number" id="pdm-product-weight" step="0.001" min="0" required /></div>
-        </div>
-        <div class="field-row">
-          <div class="field-group">
-            <label>Stock Status</label>
-            <select id="pdm-product-stock">
-              <option value="in_stock">In Stock</option>
-              <option value="low_stock">Low Stock</option>
-              <option value="out_of_stock">Out of Stock</option>
-              <option value="made_to_order">Made to Order</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-group"><label>Tags</label><input type="text" id="pdm-product-tags" placeholder="bridal, temple, festive" /></div>
-        <div class="field-group"><label>Description</label><textarea id="pdm-product-description" required></textarea></div>
-        <div class="field-group">
-          <label>Replace Images</label>
-          <input type="file" id="pdm-product-images" accept="image/*" multiple />
-          <div class="otp-hint">Leave empty to keep current images. Uploading new files will replace the current image set.</div>
-        </div>
-        <div class="product-image-grid" id="pdm-new-images"></div>
-        <div class="msg-box" id="pdm-msg"></div>
-        <div class="sheet-footer">
-          <button class="icon-pill-btn icon-pill-btn-primary" type="submit" id="pdm-save-btn" aria-label="Save product" title="Save product">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M9 4v6h6V4"/><path d="M9 19h6"/></svg>
-          </button>
-          <button class="icon-pill-btn" type="button" id="pdm-delete-btn" aria-label="Delete product" title="Delete product">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"/><path d="M4 7h16"/><path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-  <script src="assets/js/admin.js"></script>
+  </main>
 </body>
 </html>

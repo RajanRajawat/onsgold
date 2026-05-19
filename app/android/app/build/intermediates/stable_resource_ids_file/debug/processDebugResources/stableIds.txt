@@ -1,3 +1,4 @@
+com.onsgold.admin:xml/file_paths = 0x7f110000
 com.onsgold.admin:styleable/ViewPager2 = 0x7f100098
 com.onsgold.admin:styleable/Variant = 0x7f100095
 com.onsgold.admin:styleable/Transform = 0x7f100093
